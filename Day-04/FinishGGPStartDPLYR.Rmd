@@ -1,0 +1,146 @@
+---
+title: "Finish GGPlot and Start DPLYR"
+author: "John W. Hoggard"
+date: "2020-0902"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Saving a Plot
+
+```{r}
+library(ggplot2)
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+    geom_point(aes(color = Species)) +
+    labs(title = "Sepal width vs. Length")
+```
+
+Save to a file:
+```{r}
+ggsave("IrisPlot.png")
+```
+
+## Coordinates
+
+Diamonds data set:
+```{r}
+str(diamonds)
+```
+
+What different values of clarity do we have?
+```{r}
+ggplot(diamonds) +
+    geom_bar(aes(x = clarity))
+```
+
+What if I want to split up by color?
+```{r}
+ggplot(diamonds) +
+    geom_bar(aes(x = clarity, fill = color))
+```
+
+We can adjust the position:  Identity plots in front:
+```{r}
+ggplot(diamonds) +
+    geom_bar(aes(x = clarity, fill = color), position = "identity")
+```
+
+```{r}
+ggplot(diamonds) +
+    geom_bar(aes(x = clarity, fill = color), position = "stack")
+```
+
+Or dodge to go side-by-side:
+```{r}
+ggplot(diamonds) +
+    geom_bar(aes(x = clarity, fill = color), position = "dodge")
+```
+
+Can flip the coordinates:
+```{r}
+ggplot(diamonds) +
+    geom_bar(aes(x = clarity, fill = color), position = "stack") +
+    coord_flip()
+```
+
+But geom_bar computes counts.  If we just want data values, use geom_col:
+```{r}
+# DSCI 301 enrollment data
+enrol_301 <- data.frame(
+    year = c(2019, 2020),
+    students = c(8, 10)
+)
+ggplot(enrol_301) + 
+    geom_col(aes(x = year, y = students))
+```
+
+Let's go back to the diamonds:
+```{r}
+ggplot(diamonds) +
+    geom_bar(aes(x = 1, fill = color)) + 
+    coord_polar(theta = "y")
+```
+
+## Using DPLYR for Data Manipulation
+
+```{r}
+library(dplyr)
+```
+
+The `dplyr` package is for manipulating data frames.  The major techniques are:
+
+    * Selecting columns (variables)
+    * Filter rows (observations)
+    * Arrange rows
+    * Mutating variables (making/changing variables)
+    * Summarizing data.
+    
+### Selecting Columns
+
+```{r}
+str(iris)
+```
+
+To select certain columns, use the `select` command:
+```{r}
+head(select(iris, Sepal.Length, Species))
+```
+
+We can also select ranges:
+```{r}
+head(select(iris, Petal.Length:Species))
+```
+
+Select everything *except* Species:
+```{r}
+head(
+    select(iris, -Species)
+)
+```
+
+Select everything except the length variables:
+```{r}
+head(
+    select(iris, -c(Sepal.Length, Petal.Length))
+)
+```
+
+In fact, we can be fancier:
+```{r}
+head(
+    select(iris, -contains("Length"))
+)
+```
+
+
+
+
+
+
+
+
+
+

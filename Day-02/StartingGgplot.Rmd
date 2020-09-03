@@ -1,0 +1,45 @@
+---
+title: "First ggplot examples"
+author: "John W. Hoggard"
+date: "8/25/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## First ggplot example
+
+Let's create a plot in ggplot!
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+ggplot(data = iris,
+       aes(x = Sepal.Length,
+           y = Sepal.Width,
+           color = Species)) +
+    geom_point()
+```
+
+What if we want to just make all the points blue?
+```{r}
+ggplot(data = iris,
+       aes(x = Sepal.Length,
+           y = Sepal.Width,
+           color = "blue")) +
+    geom_point()
+```
+
+Can't do that inside the aesthetic mapping!
+
+Instead, we can specify a color inside the geom, but NOT inside an aesthetic:
+```{r}
+ggplot(data = iris,
+       aes(x = Sepal.Length,
+           y = Sepal.Width)) +
+    geom_point(color = "blue")
+```

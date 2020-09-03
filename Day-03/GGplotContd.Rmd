@@ -1,0 +1,156 @@
+---
+title: "GGPlot Continued"
+author: "John W. Hoggard"
+date: "8/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Basic Scatterplots and Smoothers
+
+Set up a ggplot, add data, aesthetic mappings, and then finally a geom:
+
+```{r}
+library(ggplot2)
+ggplot(data = iris) +
+    geom_point(aes(x = Sepal.Length,
+                   y = Sepal.Width))
+```
+
+We can add a mapping to identify species by color:
+
+```{r}
+ggplot(data = iris) +
+    geom_point(aes(x = Sepal.Length,
+                   y = Sepal.Width, 
+                   color = Species))
+```
+
+```{r}
+str(iris)
+```
+
+Remember in base R plotting, we had to extract columns from the data frame:
+```{r}
+plot(iris$Sepal.Length, iris$Sepal.Width)
+```
+
+Could also map, say, shape:
+```{r}
+ggplot(data = iris) +
+    geom_point(aes(x = Sepal.Length,
+                   y = Sepal.Width, 
+                   shape = Species))
+```
+
+```{r}
+ggplot(data = iris) +
+    geom_point(aes(x = Sepal.Length,
+                   y = Sepal.Width, 
+                   color = Species)) +
+    geom_smooth(aes(x = Sepal.Length, y = Sepal.Width), 
+                method = "loess", se = FALSE)
+```
+
+```{r}
+ggplot(data = iris) +
+    geom_point(aes(x = Sepal.Length,
+                   y = Sepal.Width, 
+                   color = Species)) +
+    geom_smooth(formula = y ~x, aes(x = Sepal.Length, y = Sepal.Width), 
+                method = "lm", se = FALSE)
+```
+
+
+```{r}
+ggplot(data = iris,
+       aes(x = Sepal.Length,
+                   y = Sepal.Width)) +
+    geom_point(aes(color = Species)) +
+    geom_smooth(formula = y ~x, method = "lm", se = FALSE,
+                aes(group = Species))
+```
+
+Or we can set the colors for everything:
+```{r}
+ggplot(data = iris,
+       aes(
+           x = Sepal.Length, 
+           y = Sepal.Width,
+           color = Species
+       )
+       ) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, formula = y~x)
+```
+
+An alternate way to look at subsets is to *facet* the plot:
+```{r}
+ggplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+    geom_point() +
+    geom_smooth(formula = y~x, method = "lm", se = FALSE) +
+    facet_wrap( ~ Species, nrow = 3)
+```
+
+## Some Other Geoms
+
+There are tons of geoms available.  (Type `geom` and use autocomplete to check.)
+
+Histogram of Sepal.Length:
+```{r}
+ggplot(data = iris) + 
+    geom_histogram(aes(x = Sepal.Length), binwidth = .5)
+```
+
+(Set bins or binwidth to adjust the number of bins.)
+
+What if we set a fill color? Outside of the aesthetic:
+```{r}
+ggplot(data = iris) + 
+    geom_histogram(aes(x = Sepal.Length), binwidth = .5, 
+                   fill="blue", 
+                   color = "green")
+```
+
+Inside the aesthetic by mapping to Species, for example:
+```{r}
+ggplot(data = iris) +
+    geom_histogram(aes(x = Sepal.Length, fill = Species), binwidth = .5)
+```
+
+These are plotted on top of each other:
+```{r}
+ggplot(data = iris) +
+    geom_histogram(aes(x = Sepal.Length, fill = Species), binwidth = .5) +
+    facet_wrap(~Species)
+```
+
+You could also use boxplots:
+```{r}
+ggplot(data = iris) +
+    geom_boxplot(aes(x = Species, y = Sepal.Length))
+```
+
+## Adding Style to the Graph
+
+Add on labels with the `labs` function:
+```{r}
+ggplot(data = iris) +
+    geom_boxplot(aes(x = Species, y = Sepal.Length)) +
+    labs(title = "Distribution of Sepal Lengths",
+         y = "The Sepal Length")
+```
+
+Something cool:
+```{r}
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+    geom_point(color = "white", size = 3) +
+    geom_point(aes(color = Species)) + 
+    labs(title = "Cool looking points",
+         x = "Sepal Length", 
+         y = "Sepal Width")
+```
+

@@ -1,0 +1,226 @@
+---
+title: 'Day 5: DPLYR'
+author: "John W. Hoggard"
+date: "2020-09-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+More `dplyr`!
+
+## Selecting Variables
+
+Reminder:
+```{r}
+str(mpg)
+```
+
+Warm-up: Select the manufcaturer, model, city and highway mileage columns:
+```{r}
+head(
+    select(mpg, c(manufacturer, model, cty, hwy))
+)
+```
+
+Order matters:
+```{r}
+select(mpg, hwy, cty, manufacturer, model)
+```
+
+## Filtering Rows
+
+Reminder: `iris`
+```{r}
+str(iris)
+```
+
+We use `filter` to pick which rows/observations to show
+```{r}
+filter(iris, Species == "virginica")
+```
+
+Note the `==`!  Use `==` to test for equality.
+
+```{r}
+filter(iris, Species = "virginica")
+```
+
+Nice error message in `dplyr`!
+
+We can also pick anything with Sepal length of at least 5 cm:
+```{r}
+head(filter(iris, Sepal.Length >= 5))
+```
+
+```{r}
+head(filter(iris, Sepal.Length > 5))
+```
+
+If we want two conditions, say Sepal length over 7 and sepal width over 3:
+```{r}
+filter(iris, Sepal.Length > 7, Sepal.Width > 3)
+```
+
+You can also combine with an and operation, abbreviated `&`:
+```{r}
+filter(iris, (Sepal.Length > 7) & (Sepal.Width > 3))
+```
+
+**Warning:**  There is also an `&&`, but don't use it on `filter` conditions:
+```{r}
+filter(iris, (Sepal.Length > 7) && (Sepal.Width > 3))
+```
+
+Or can be expressed with `|`:
+```{r}
+filter(iris, Sepal.Length > 7.5 | Sepal.Width > 4)
+```
+
+```{r}
+str(mpg)
+```
+
+
+Check: Find the cars in `mpg` which are SUVs with highway mileage of at least 20mpg:
+```{r}
+filter(
+    mpg, class == "suv", hwy >= 20
+)
+```
+
+## Arrange the Rows
+
+The `arrange` command will sort rows by a column:
+```{r}
+head(arrange(iris, Sepal.Length))
+```
+
+If we want descending order instead, there is a helper function, `desc()`:
+```{r}
+head(arrange(iris, desc(Sepal.Length)))
+```
+
+We can give multiple criteria to `arrange` as "tie-breakers":
+```{r}
+head(arrange(iris, desc(Sepal.Length), Petal.Length))
+```
+
+Can you find the shortest sepal length from the Virginica species? (You can use an intermediate variable if you want.)
+```{r}
+iris_virginica <- filter(iris, Species == "virginica")
+arrange(iris_virginica, Sepal.Length)
+```
+
+```{r}
+arrange(
+    filter(iris, Species == "virginica"),
+    Sepal.Length
+)
+```
+
+## Using the Pipe
+
+The pipe operator, `%>%`, lets us pass dataframes from one operation to the next.
+```{r}
+filter(iris, Species == "virginica") %>%
+    arrange(Sepal.Length) %>%
+    head()
+```
+
+In fact, I can just start with the data frame:
+```{r}
+iris %>%
+    filter(Species == "virginica") %>%
+    arrange(Sepal.Length) %>%
+    head()
+```
+
+The SUVs with at least 20mpg in highway mileage, sorted by highway mileage:
+```{r}
+mpg %>%
+    filter(class == "suv") %>%
+    filter(hwy >= 20) %>%
+    arrange(desc(hwy))
+```
+
+## Mutating the Data
+
+We can add new variables based on old variables by mutating the data frame:
+```{r}
+# Convert Sepal lengths into inches:
+mutate(iris,
+       Sepal.Length.in = Sepal.Length / 2.54) %>%
+    head()
+```
+
+```{r}
+# Convert Sepal lengths into inches:
+mutate(iris,
+       Sepal.Length.in = Sepal.Length / 2.54,
+       Sep.Len.in.plus1 = Sepal.Length.in + 1) %>%
+    select(Sepal.Length, Sepal.Length.in, Sep.Len.in.plus1) %>%
+    head()
+```
+
+Maybe we want ratio of Sepal.Length to Sepal.Width:
+```{r}
+mutate(iris,
+       Ratio = Sepal.Length / Sepal.Width) %>%
+    head()
+```
+
+## Summarizing
+
+By itself, `summarize` is a little boring:
+```{r}
+summarize(iris,
+          Median.Sep.Width = median(Sepal.Width),
+          Mean.Sep.Width = mean(Sepal.Width),
+          Sep.Width.SD = sd(Sepal.Width))
+```
+
+Can you find the median sepal length of the Setosa irises?
+```{r}
+iris %>%
+    filter(Species == "setosa") %>%
+    summarize(MedSepLength = median(Sepal.Length))
+```
+
+## Grouping Data
+
+We can "group" the data together by some characteristic, then carry out summaries on the grouped data.
+
+For example:
+```{r}
+iris_byspecies <- group_by(iris, Species)
+head(iris_byspecies)
+```
+
+Now:
+```{r}
+summarize(iris_byspecies,
+          mean(Sepal.Length), median(Sepal.Length), var(Sepal.Length))
+```
+
+There is a useful helper function `n()` which just counts how many there are:
+```{r}
+summarize(iris_byspecies,
+          HowMany = n())
+```
+
+We could also:
+```{r}
+iris %>%
+    group_by(Species) %>%
+    summarize(mean(Sepal.Length), median(Sepal.Length))
+```
+
+
+

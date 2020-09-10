@@ -1,0 +1,168 @@
+---
+title: "Exploratory Data Analysis"
+author: "John W. Hoggard"
+date: "9/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Goal of Exploratory Data Analsis: Understand the data and find patterns.
+
+Common questions:
+
+  * What values are present?
+  * Variation within a variable?
+  * Are there outliers?
+  * Covariation?
+ 
+Superhero data set from Kaggle: https://www.kaggle.com/ishajain30/super-heroes/data
+
+Use package `here`:
+```{r}
+library(here)
+```
+
+Can get the path easily:
+```{r}
+hero_file <- here("Datasets", "heroes_information.csv")
+heroes <- read.csv(hero_file, header = TRUE)
+library(tidyverse)
+```
+
+## Categorical Variables
+
+What are the eye colors?
+```{r}
+heroes %>%
+    group_by(Eye.color) %>%
+    summarize(count = n())
+```
+
+Shortcut:  `count`:
+```{r}
+heroes %>%
+    filter(Eye.color != "-") %>%
+    count(Eye.color) %>%
+    arrange(desc(n)) %>%
+    filter(n > 5)
+```
+
+## Numerical Variable
+
+Let's look at height. What's the distribution?
+```{r}
+heroes %>%
+    ggplot() +
+    geom_histogram(aes(x = Height))
+```
+
+We could restrict the x-coordinates a bit with `coord_cartesian(xlim = ...)`:
+```{r}
+heroes %>%
+    ggplot() +
+    geom_histogram(aes(x = Height)) +
+    coord_cartesian(xlim = c(-150, 0))
+```
+
+What's the chunk near -100?
+```{r}
+filter(heroes, Height < -90) %>%
+    select(name, Race, Height)
+```
+
+I think -99 is used for NA in Height column. Let's make this explicit:
+```{r}
+heroes <- heroes %>%
+    mutate(
+        Height = ifelse( Height == -99,
+            NA,
+            Height
+        )
+    ) 
+```
+
+Back to histogram:
+```{r}
+heroes %>%
+    filter(!is.na(Height)) %>%
+    ggplot() + 
+        geom_histogram(aes( x = Height ), binwidth = 10) +
+    coord_cartesian(xlim = c(0, 300))
+```
+
+What are these numbers actually? Let's look up one:
+```{r}
+heroes %>%
+    filter(name == "Iron Man") %>%
+    select(name, Height)
+```
+
+These appear to be in cm.  How big is 500 cm?  `r 500 / 2.54 / 12` feet.
+
+Who is over 500 cm?
+```{r}
+heroes %>%
+    filter(Height > 500)
+```
+
+Who is small?
+```{r}
+heroes %>%
+    filter(Height < 100) %>%
+    select(name, Height) %>%
+    arrange(desc(Height))
+```
+
+I am pretty sure *most* of these are in cm, but some *are not*.
+
+We could also produce some summary statistics:
+```{r}
+heroes %>%
+    summarize(
+        Median = median(Height, na.rm = T),
+        Mean = mean(Height, na.rm = T),
+        SD = sd(Height, na.rm = T)
+    )
+```
+
+## Covariation: Height vs. Race
+
+How does height vary with race?
+```{r}
+heroes %>%
+    filter(Race != "-") %>%
+    group_by(Race) %>%
+    summarize(AvgHeight = mean(Height, na.rm = T), count = n()) %>%
+    filter(count >= 10) %>%
+    arrange(desc(AvgHeight))
+```
+
+Distributions by race?
+```{r}
+heroes %>%
+    filter(Race != "-") %>%
+    group_by(Race) %>%
+    filter(n() > 5) %>%
+    ungroup() %>%
+    filter(!is.na(Height)) %>%
+    ggplot() +
+        geom_boxplot(aes(x = Race, y = Height)) + 
+        coord_flip()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

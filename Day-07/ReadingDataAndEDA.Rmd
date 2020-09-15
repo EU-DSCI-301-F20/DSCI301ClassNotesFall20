@@ -1,0 +1,202 @@
+---
+title: "Reading Data and EDA"
+author: "John W. Hoggard"
+date: "9/15/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Reading Data with `readr`
+
+There is a package called `readr` in the Tidyverse for reading data.
+
+```{r}
+library(tidyverse)
+```
+
+Get the pathname to the file with `here`:
+```{r}
+library(here)
+simple_data_path <- here("Datasets", "SimpleData.csv")
+```
+
+Read it in with `readr`:
+```{r}
+simple_data <- read_csv(simple_data_path)
+simple_data_base <- read.csv(simple_data_path)
+```
+
+```{r}
+str(simple_data_base)
+```
+
+```{r}
+str(simple_data)
+```
+
+We don't get munged column names, but it can be tricky to grab those columns:
+```{r}
+# Base R version:
+simple_data_base$Employee.Name
+```
+
+ReadR version:
+```{r}
+simple_data$`Employee Name`
+```
+
+What is team exactly?
+```{r}
+simple_data %>%
+    count(Team)
+```
+
+## Parsing
+
+ReadR comes with functions which "parse" or read various types of data.  
+For example, we can parse numerical data:
+```{r}
+x <- c("123", "4.53", "-99", "", "pi", "-4.78", "Cost is 3.50", "$128.34")
+```
+
+Use `parse_number(x)1 to parse a vector of strings into numbers:
+```{r}
+parse_number(x)
+```
+
+Now: When we use `read_csv`, it produces column specifications using related functions like `col_number()`.  Let's re-read the data, but change the Pledge column to be parsed as a number:
+
+```{r}
+simple_data <- read_csv(simple_data_path,
+                        col_types = 
+                            cols(
+  `Employee Name` = col_character(),
+  `ID #` = col_double(),
+  `Phone Number` = col_character(),
+  Address = col_character(),
+  Email = col_character(),
+  Pledge = col_number(),
+  Team = col_character(),
+  `Date Hired` = col_character()
+)
+)
+```
+
+```{r}
+str(simple_data)
+```
+
+Of course can't do that if it's not a number:
+```{r}
+read_csv(simple_data_path,
+                        col_types = 
+                            cols(
+  `Employee Name` = col_number(),
+  `ID #` = col_double(),
+  `Phone Number` = col_character(),
+  Address = col_character(),
+  Email = col_character(),
+  Pledge = col_number(),
+  Team = col_character(),
+  `Date Hired` = col_character()
+)
+)
+```
+
+If you want to specifically have doubles, there is a `parse_double` (and `col_double`):
+```{r}
+parse_double(x)
+```
+
+Dates are a little tricky:
+```{r}
+parse_date(c("2020-09-15", "September 9, 2020", "9/15/20"))
+```
+
+We can get other things represented:
+```{r}
+parse_date(c("2020-09-15", "September 9, 2020", "9/15/20"),
+           format="%m/%d/%y")
+```
+
+Read one last time, but with: Character for ID, factor for Team, dates for Date Hired, and numbers for Pledges:
+```{r}
+simple_data <- read_csv(simple_data_path,
+                        col_types = 
+                            cols(
+  `Employee Name` = col_character(),
+  `ID #` = col_character(),
+  `Phone Number` = col_character(),
+  Address = col_character(),
+  Email = col_character(),
+  Pledge = col_number(),
+  Team = col_factor(),
+  `Date Hired` = col_date(format = "%m/%d/%y")
+)
+)
+```
+```{r}
+str(simple_data)
+```
+
+
+## Back to Superheroes
+
+```{r}
+heroes_path <- here("Datasets", "heroes_information.csv")
+heroes <- read_csv(heroes_path, 
+                   na = c("-", "-99"),
+                   col_types = 
+                       cols(
+  X1 = col_double(),
+  name = col_character(),
+  Gender = col_factor(),
+  `Eye color` = col_character(),
+  Race = col_character(),
+  `Hair color` = col_character(),
+  Height = col_double(),
+  Publisher = col_character(),
+  `Skin color` = col_character(),
+  Alignment = col_factor(),
+  Weight = col_double()
+)
+                       )
+```
+
+Let's continue our EDA: Let's try another covariation question: How does gender relate to alignment?
+
+One way would be to make a table:
+```{r}
+heroes %>%
+    count(Gender, Alignment)
+```
+
+Longer way:
+```{r}
+heroes %>%
+    filter(!is.na(Gender), !is.na(Alignment)) %>%
+    group_by(Gender, Alignment) %>%
+    summarize(n = n())
+```
+
+Or maybe we could use a bar chart:
+```{r}
+heroes %>%
+    filter(!is.na(Gender), !is.na(Alignment)) %>%
+    ggplot() + 
+        geom_bar(aes(x = Alignment, fill = Gender), position = "dodge") +
+        labs(title = "Alignment by Gender", y = NULL)
+```
+
+What about percentages?
+```{r}
+heroes %>%
+    filter(!is.na(Gender), !is.na(Alignment)) %>%
+    group_by(Gender, Alignment) %>%
+    summarize(n = n()) %>%
+    mutate(total = sum(n), percent = n / total * 100)
+```
+

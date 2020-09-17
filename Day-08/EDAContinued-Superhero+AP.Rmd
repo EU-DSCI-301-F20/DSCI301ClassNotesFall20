@@ -1,0 +1,130 @@
+---
+title: "More EDA"
+author: "John W. Hoggard"
+date: "9/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Read the superhero dataset:
+```{r}
+library(here)
+library(tidyverse)
+heroes_path <- here("Datasets", "heroes_information.csv")
+heroes <- read_csv(heroes_path, 
+                   na = c("-", "-99", "-99.0"),
+                   col_types = 
+                       cols(
+  X1 = col_double(),
+  name = col_character(),
+  Gender = col_factor(),
+  `Eye color` = col_character(),
+  Race = col_character(),
+  `Hair color` = col_character(),
+  Height = col_double(),
+  Publisher = col_character(),
+  `Skin color` = col_character(),
+  Alignment = col_factor(),
+  Weight = col_double()
+)
+                       )
+```
+
+## Covariation: Two continuous variables
+
+Weight and height are both numeric/continuous variables.
+
+```{r}
+heroes %>%
+    ggplot(aes(x = Height, y = Weight)) +
+    geom_point()
+```
+
+What's going on with the outliers?
+```{r}
+filter(heroes, Height < 100, Weight > 250)
+```
+
+Giganta:  She's been recorded as 62.5 *meters*, not cm.
+
+```{r}
+filter(heroes, Height > 500)
+```
+
+Reasonable ranges for heights/weights:
+```{r}
+heroes %>%
+    filter(!is.na(Height), !is.na(Weight), Height < 500) %>%
+    ggplot(aes(x = Height, y = Weight)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE)
+```
+
+Alternatively: We can also discretize height, for example:
+```{r}
+heroes <- heroes %>%
+    mutate(HeightRange = cut_number(Height, 10))
+```
+
+```{r}
+heroes %>%
+    filter(!is.na(Height), !is.na(Weight)) %>%
+    ggplot(aes(x = HeightRange, y = Weight)) +
+    geom_boxplot()
+```
+
+## AP Data
+
+Load the data:
+```{r}
+ap_path <- here("Datasets", "pass_06_13.csv")
+ap_data <- read_csv(ap_path, 
+                    col_types = cols(
+  state = col_character(),
+  year = col_double(),
+  schools_offering = col_double(),
+  total = col_double(),
+  passed = col_double(),
+  female = col_double(),
+  female_passed = col_number(),
+  black = col_double(),
+  black_passed = col_number(),
+  black_male = col_double(),
+  black_male_passed = col_number(),
+  black_female = col_double(),
+  black_female_passed = col_number(),
+  hispanic = col_double(),
+  hispanic_passed = col_number(),
+  hispanic_female = col_double(),
+  hispanic_female_passed = col_number(),
+  hispanic_male = col_double(),
+  hispanic_male_passed = col_double(),
+  white = col_double(),
+  white_passed = col_double(),
+  white_male = col_double(),
+  white_female = col_double(),
+  asian = col_double(),
+  asian_passed = col_double(),
+  asian_male = col_double(),
+  asian_female = col_double(),
+  male = col_double(),
+  male_passed = col_double()
+))
+```
+
+All of them:
+```{r}
+spec(ap_data)
+```
+
+It appears all parsing failures are where there was *only* a `*` instead of a number.
+
+
+
+
+
+
+

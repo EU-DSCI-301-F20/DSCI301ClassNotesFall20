@@ -1,0 +1,106 @@
+---
+title: "More EDA"
+author: "John W. Hoggard"
+date: "9/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## AP Data
+
+Load the data:
+```{r}
+library(tidyverse)
+library(here)
+ap_path <- here("Datasets", "pass_06_13.csv")
+ap_data <- read_csv(ap_path, 
+                    col_types = cols(
+  state = col_character(),
+  year = col_double(),
+  schools_offering = col_double(),
+  total = col_double(),
+  passed = col_double(),
+  female = col_double(),
+  female_passed = col_number(),
+  black = col_double(),
+  black_passed = col_number(),
+  black_male = col_double(),
+  black_male_passed = col_number(),
+  black_female = col_double(),
+  black_female_passed = col_number(),
+  hispanic = col_double(),
+  hispanic_passed = col_number(),
+  hispanic_female = col_double(),
+  hispanic_female_passed = col_number(),
+  hispanic_male = col_double(),
+  hispanic_male_passed = col_double(),
+  white = col_double(),
+  white_passed = col_double(),
+  white_male = col_double(),
+  white_female = col_double(),
+  asian = col_double(),
+  asian_passed = col_double(),
+  asian_male = col_double(),
+  asian_female = col_double(),
+  male = col_double(),
+  male_passed = col_double()
+))
+```
+
+Maybe we're interested in a pass rate:
+```{r}
+ap_data %>%
+    mutate(
+        pass_rate = passed / total
+    ) -> ap_data
+```
+
+National trends on pass rate?
+```{r}
+ap_data %>%
+    filter(state == "National Data - CS A") %>%
+    ggplot() +
+    geom_line(
+        aes(x = year, y = pass_rate)
+    ) +
+    labs(title = "National Pass Rates, 2006-2012", 
+         x = "Year", y = "Rate")
+```
+
+What about in the states?
+```{r}
+count(ap_data, state)
+```
+
+What is up with Georgia?
+```{r}
+filter(ap_data, state == "Georgia") %>%
+    select(state, year)
+```
+
+Let's look by state:
+```{r}
+ap_data %>%
+    filter(state != "National Data - CS A", state != "National Data - Calculus AB",
+           year > 2000) %>%
+    ggplot() + 
+    geom_line(
+        aes(x = year, y = pass_rate, color = state)
+    )
+```
+
+Which is that high starting one?
+```{r}
+filter(ap_data, year == 2006, pass_rate > .8)
+```
+
+```{r}
+ap_data %>%
+filter(state == "Alabama") 
+```
+
+
+

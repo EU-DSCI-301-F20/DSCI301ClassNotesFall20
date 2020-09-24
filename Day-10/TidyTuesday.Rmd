@@ -1,0 +1,89 @@
+---
+title: "Tidy Tuesday"
+author: "John W. Hoggard"
+date: "9/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tidy Tuesday
+
+Download the package with `install.packages("tidytuesdayR")`, and load the data set:
+```{r}
+library(tidyverse)
+tuesdata <- tidytuesdayR::tt_load('2020-09-22')
+```
+```{r}
+str(tuesdata)
+```
+
+Look at, say, expeditions:
+```{r}
+str(tuesdata$expeditions)
+```
+
+Each is available to extract:
+```{r}
+tuesdata$expeditions %>% head
+```
+
+## Expeditions
+
+```{r}
+exped <- tuesdata$expeditions
+str(exped)
+```
+
+Expeditions by year?
+```{r}
+count(exped, year) %>%
+    ggplot(aes(x = year, y = n)) +
+    geom_line()
+```
+
+Seems like the number of expeditions has increased by year for some time, with a recent drop--or are there just fewer recorded on the most recent? Says through Spring 2019, so 2019 is probably incomplete-others are maybe OK?
+```{r}
+filter(exped, year > 2010) %>% count(year)
+```
+```{r}
+exped %>%
+    filter(year < 2019) %>%
+    count(year) %>%
+    ggplot(aes(x = year, y = n)) +
+    geom_line()
+```
+
+Have deaths been changing over the years?
+```{r}
+exped %>%
+    group_by(year) %>%
+    summarize(Deaths = sum(member_deaths)) %>%
+    ggplot(aes(x = year, y = Deaths)) + 
+    geom_line()
+```
+
+Has risen some, although not I think in proportion to total increase in number of members:
+```{r}
+exped %>%
+    group_by(year) %>%
+    summarize(Deaths = sum(member_deaths), TotalMembers = sum(members)) %>%
+    mutate(PercDeaths = Deaths / TotalMembers) %>%
+    ggplot(aes(x = year, y = PercDeaths)) + 
+    geom_line()
+```
+
+Year when everyone died?
+```{r}
+exped %>%
+    group_by(year) %>%
+    summarize(Deaths = sum(member_deaths), TotalMembers = sum(members)) %>%
+    mutate(PercDeaths = Deaths / TotalMembers) %>%
+    filter(PercDeaths == 1)
+```
+```{r}
+filter(exped, year == 1934)
+```
+

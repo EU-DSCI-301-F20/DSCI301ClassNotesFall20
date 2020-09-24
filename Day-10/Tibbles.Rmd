@@ -1,0 +1,87 @@
+---
+title: "Tibbles"
+author: "John W. Hoggard"
+date: "9/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Frames
+
+```{r}
+patient_data <- 
+    data.frame(
+        Name = c("Steve Smith", "Marge Simpson", "Stewart Griffin"),
+        Age = c(15, 36, 1),
+        Treatment = c("A", "B", "C"), 
+        ID = 1
+    )
+patient_data
+```
+
+Alternate in Tidyverse:
+```{r}
+library(tidyverse)
+patient_tib <- 
+    tibble(
+        Name = c("Steve Smith", "Marge Simpson", "Stewart Griffin"),
+        Age = c(15, 36, 1),
+        Treatment = c("A", "B", "C"),
+        ID = 1
+    )
+patient_tib
+```
+
+To change a tibble to a data frame, use `as.data.frame`:
+```{r}
+as.data.frame(mpg) %>% str
+```
+
+There's also `as_tibble` if you prefer a tibble:
+```{r}
+as_tibble(iris) %>% str
+```
+
+
+The tibble also allows "non-syntactic" names:
+```{r}
+patient_tib <- 
+    tibble(
+        `Patient Name` = c("Steve Smith", "Marge Simpson", "Stewart Griffin"),
+        Age = c(15, 36, 1),
+        Treatment = c("A", "B", "C"),
+        `:-)` = 1
+    )
+patient_tib
+```
+
+But then need backticks to grab parts:
+```{r}
+patient_tib$`Patient Name`
+```
+
+We don't get partial matching in tibbles like we do in data frames:
+```{r}
+patient_data$Tre
+```
+
+```{r}
+patient_tib$Tre
+```
+
+Alternate trick for creation:
+```{r}
+tribble(
+    ~Name,          ~Age, ~Treatment,
+    #-------------|-------|----------
+    "Steve Smith",  15,   "A",
+    "Marge",        36,   "B"
+)
+```
+
+
+
+

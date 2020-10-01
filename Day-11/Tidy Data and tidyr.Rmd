@@ -1,0 +1,117 @@
+---
+title: "Tidy Data with tidyr"
+author: "John W. Hoggard"
+date: "10/8/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+## Tidy Data
+
+Tidy data:
+
+1.  Every variable in its own column
+2.  Every observation in its own row
+3.  Each value in its own cell
+
+Four (five?) examples (built-in to `tidyr`) of various formats (from WHO TB cases data):
+```{r}
+table1
+```
+
+```{r}
+table2
+```
+
+```{r}
+table3
+```
+
+```{r}
+table4a
+```
+
+```{r}
+table4b
+```
+
+```{r}
+table5
+```
+## Updates
+
+Major upgrade last year.
+
+What installed version?
+```{r}
+packageDescription("tidyr")$Version
+```
+We want version >= 1.  Can update just `tidyr` using `install.packages` again, or can update *everything* old with `update.packages(ask = FALSE)` to auto-update everything. 
+
+## Gathering / Pivoting Longer
+
+Sometimes the column headers actually have data in them, like `table4a`:
+```{r}
+table4a
+```
+
+The year is a variable.  We will pivot to a longer table using `pivot_longer`.
+
+
+
+
+### New vs. Old
+
+The older way used `gather`, and the variables were `key` (name of column for the keys), and `value` (name of new column for values), then any columns you wanted to convert:
+
+When pivoting longer:
+
+|  Old     |  New                | Meaning                                    |
+|----------|---------------------|--------------------------------------------|
+| `key`    | `names_to`          |  What to call the new column of old titles |
+| `value`  | `values_to`         |  What to call the new column of values     |
+| columns  | vector of cols      |  Which columns to convert                  |
+
+
+## Spreading / Pivoting Wider
+
+Conversely, we may have a "key" column which we would like to split up into multiple other columns.  Can do this with a "reverse" operation, `pivot_wider`:  Have to specify `names_from` (which column will have the names of the new columns), and `values_from` (which column to grab values from).
+
+
+
+### Old and New
+
+Aside:  The old version of this was called `spread`, and required `key` and `value` columns:
+
+When pivoting wider:
+
+|  Old     |  New                | Meaning                                    |
+|----------|---------------------|--------------------------------------------|
+| `key`    | `names_from`        |  Column containing new col titles          |
+| `value`  | `values_from`       |  Column containing values to fill with     |
+
+
+
+### Examples
+
+Gradebook: 
+
+
+
+
+
+
+
+Another example:  Tutoring log data.
+
+
+
+

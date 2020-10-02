@@ -65,8 +65,44 @@ table4a
 
 The year is a variable.  We will pivot to a longer table using `pivot_longer`.
 
+`pivot_longer` takes a data frome plus three variables:
 
+  * Vector of columns to turn into a new name/value pair
+  * `names_to`: Specifies what to name the column for the old names
+  * `values_to`: Name of the new column for the values
 
+```{r}
+table4a %>%
+    pivot_longer(
+        cols = `1999`:`2000`,
+        names_to = "Year",
+        values_to = "Cases"
+    )
+```
+
+A sample data frame:
+```{r}
+test_data <- 
+    tribble(
+        ~Name,   ~val1,      ~val2,       ~val3,
+        #-------/---------/------------/--------
+        "Bob",   "BobVal1", "BobVal2",  "BobVal3",
+        "Mia",   "MiaVal1", "MiaVal2",  "MiaVal3",
+        "Ora",   "OraVal1", "OraVal2",  "OraVal3"
+    )
+test_data
+```
+
+If we pivot to a longer form:
+```{r}
+test_data %>%
+    pivot_longer(
+        cols = 2:4,
+        names_to = "ValName",
+        values_to = "Value"
+    ) -> test_long
+test_long
+```
 
 ### New vs. Old
 
@@ -81,10 +117,27 @@ When pivoting longer:
 | columns  | vector of cols      |  Which columns to convert                  |
 
 
+```{r}
+table4a %>%
+    gather(
+        key = "Year",
+        value = "Cases",
+        `1999`, `2000`
+    )
+```
+
+
 ## Spreading / Pivoting Wider
 
 Conversely, we may have a "key" column which we would like to split up into multiple other columns.  Can do this with a "reverse" operation, `pivot_wider`:  Have to specify `names_from` (which column will have the names of the new columns), and `values_from` (which column to grab values from).
 
+```{r}
+test_long %>%
+    pivot_wider(
+        names_from = ValName,
+        values_from = Value
+    )
+```
 
 
 ### Old and New
@@ -98,19 +151,57 @@ When pivoting wider:
 | `key`    | `names_from`        |  Column containing new col titles          |
 | `value`  | `values_from`       |  Column containing values to fill with     |
 
-
+```{r}
+test_long %>%
+    spread(
+        key = ValName,
+        value = Value
+    )
+```
 
 ### Examples
 
-Gradebook: 
+Gradebook: May have recorded data individually as it comes in, with something like Name, Assignment, Grade, etc...
+```{r}
+grades <- read_csv(
+    here("Datasets", "Tidying", "Grades.csv")
+)
+```
+```{r}
+glimpse(grades)
+```
 
+Would be nice to have columns for things like Quiz 1, HWK 2, etc:
+```{r}
+grades %>%
+    pivot_wider(
+        names_from = Assignment,
+        values_from = Grade,
+    )
+```
 
+Let's fix the bad variable name:
+```{r}
+grades %>%
+    mutate(Assignment = ifelse(Assignment == "test 1",
+                                "Test 1",
+                                Assignment)) -> grades
+```
 
+Try again:
+```{r}
+grades %>%
+    pivot_wider(
+        names_from = Assignment,
+        values_from = Grade,
+    )
+```
 
+What's up with Sarah's Homework 3?
+```{r}
+filter(grades, Name == "Sarah Studious")
+```
 
-
-
-Another example:  Tutoring log data.
 
 
 

@@ -1,0 +1,208 @@
+---
+title: "Relational Data"
+author: "John W. Hoggard"
+date: "10/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(here)
+library(tidyverse)
+```
+
+Start with some example tibbles:
+```{r}
+dataL <- tribble(
+    ~ID, ~LeftData,
+    #---|----------
+    "a", "a data",
+    "b", "b data",
+    "c", "c data",
+    "d", "d data"
+)
+
+dataR <- tribble(
+    ~ID, ~RightData,
+    "a",  10,
+    "b",  20,
+    "d",  30,
+    "e",  40
+)
+```
+
+```{r}
+dataL
+```
+
+```{r}
+dataR
+```
+
+## Joins
+
+Putting the data together is called a *join*.
+
+### Inner Join
+
+Returns what is in each table, using a variable `by` to specify the (string) name of the variable to join by:
+
+```{r}
+inner_join(dataL, dataR, by = "ID")
+```
+
+If you leave out the `by` variable, it will attempt a "natural" join:
+```{r}
+inner_join(dataL, dataR)
+```
+
+### Outer Joins
+
+We join up everything either on the left table (a left join) with everything that matches on the right, *or* join up everything on the right table (right join) with anything that matches in the left table:
+```{r}
+left_join(dataL, dataR, by = "ID")
+```
+
+```{r}
+right_join(dataL, dataR, by = "ID")
+```
+
+### Full Join
+
+Everything from both tables:
+```{r}
+full_join(dataL, dataR, by = "ID")
+```
+
+## Tutoring Data
+
+Tutoring data:
+```{r}
+tutor_logs <- read_csv(
+    here("Datasets", "Tidying", "Tutoring.csv"),
+    col_types = cols(
+  Date = col_date(format = "%m/%d/%y"),
+  Tutor = col_character(),
+  Class = col_character(),
+  `Time (in hours)` = col_double()
+)
+)
+```
+
+We can use a left join to "look up" more information about the tutors, if we have another file with additional data. 
+
+Grab extra data about the tutors:
+```{r}
+tutors <- read_csv(here("Datasets", "Tidying", "Tutors.csv"))
+```
+
+Now let's combine: Look up data for each tutor, and add it to the tutoring logs:
+```{r}
+left_join(tutor_logs, tutors, by = c("Tutor" = "First"))
+```
+
+Mostly good, except:  Oops, Bob is actually Robert.
+```{r}
+tutor_logs %>%
+    mutate(Tutor = ifelse(
+        Tutor == "Bob", 
+        "Robert", 
+        Tutor
+    )) ->
+    tutor_logs
+```
+
+```{r}
+left_join(tutor_logs, tutors, by = c("Tutor" = "First")) ->
+    tutor_data
+```
+
+Let's get the hours to send to HR to cut some paychecks:
+```{r}
+tutor_logs %>%
+    group_by(Tutor) %>%
+    summarize(Total = sum(`Time (in hours)`)) %>%
+    left_join(tutors, by = c("Tutor" = "First")) %>%
+    select(Tutor, Last, ID, Total) %>%
+    rename(First = Tutor)
+```
+
+```{r}
+orig_tutor_logs <- read_csv(
+    here("Datasets", "Tidying", "Tutoring.csv"),
+    col_types = cols(
+  Date = col_date(format = "%m/%d/%y"),
+  Tutor = col_character(),
+  Class = col_character(),
+  `Time (in hours)` = col_double()
+)
+)
+```
+
+If we had done an inner join instead:
+```{r}
+inner_join(orig_tutor_logs, tutors, by = c("Tutor" = "First"))
+```
+
+## AP Data
+
+Data about the CS AP Exams in the US from 2006-2013:
+```{r}
+ap_data <- read_csv(
+    na = c("*"),
+    col_types = cols(
+        .default = col_number(),
+        state = col_character()
+    ),
+    here("Datasets", "pass_06_13.csv")
+)
+```
+
+Now add some additional information: High School enrollments from
+https://nces.ed.gov/programs/digest/d13/tables/dt13_203.20.asp:
+Import this data:
+```{r}
+enrollment_data <- read_csv(
+    here("Datasets", "HSEnrollment.csv")
+)
+```
+Fix the NA rows:
+```{r}
+enrollment_data %>%
+    filter(!is.na(State)) ->
+    enrollment_data
+```
+
+Pivot this longer to get state and year we can look up:
+```{r}
+enrollment_data %>%
+    pivot_longer(
+        cols = -State,
+        names_to = "year",
+        values_to = "Enrollment",
+        names_prefix = "Fall "
+    ) %>%
+    mutate(year = as.numeric(year)) ->
+    long_enroll_data
+```
+
+Now let's join together `ap_data` and `long_enroll_data`:
+```{r}
+left_join(ap_data, long_enroll_data, 
+          by = c("state" = "State", "year") ) ->
+    full_ap_data
+```
+
+What percentage of students were taking the AP exam by state and year?
+```{r}
+full_ap_data %>%
+    filter(!grepl("National", state)) %>% # strip out stuff that contains "National"
+    mutate(Percent = total / Enrollment) %>%
+    select(state, year, total, Enrollment, Percent)
+```
+
+
+

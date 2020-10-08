@@ -1,0 +1,163 @@
+---
+title: "More Tidying"
+author: "John W. Hoggard"
+date: "10/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Back to tidyr
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+Recall:
+```{r}
+table1
+```
+
+We can `pivot_wider` to switch to a wide format (the `year` column really contains variables):
+```{r}
+pivot_wider(table1,
+            names_from = year,
+            values_from = cases:population)
+```
+
+Or we can switch to a longer format:
+```{r}
+pivot_longer(
+    table1,
+    cases:population,
+    names_to = "Type",
+    values_to = "Value"
+)
+```
+
+## Tutoring Data
+
+Tutoring log:
+```{r}
+tutor_logs <- read_csv(
+    here("Datasets", "Tidying", "Tutoring.csv"),
+    col_types = cols(
+  Date = col_date(format = "%m/%d/%y"),
+  Tutor = col_character(),
+  Class = col_character(),
+  `Time (in hours)` = col_double()
+)
+)
+```
+
+Fix the annoying name:
+```{r}
+tutor_logs %>%
+    rename(Time = `Time (in hours)`) -> 
+    tutor_logs
+```
+
+
+How about a report of hours by tutor and class?
+```{r}
+tutor_logs %>%
+    group_by(Tutor, Class) %>%
+    summarize(total_time = sum(Time))
+```
+
+Maybe this would be better pivoted wide?
+
+```{r}
+tutor_logs %>%
+    group_by(Tutor, Class) %>%
+    summarize(total_time = sum(Time)) %>%
+    pivot_wider(
+        names_from = Class,
+        values_from = total_time,
+    )
+```
+
+If we want total hours taught per tutor, that's easy enough too:
+```{r}
+tutor_logs %>%
+    group_by(Tutor) %>%
+    summarize(total_time = sum(Time))
+```
+
+Or by class:
+```{r}
+tutor_logs %>%
+    group_by(Class) %>%
+    summarize(total_time = sum(Time))
+```
+
+## Separating and Uniting
+
+Sometimes data in a column is really more than just a single variable, and we have to split a column into multiple variables.
+```{r}
+math_peeps <- tribble(
+    ~Name, ~Dates,
+    #-----|--------
+    "Pierre de Fermat", "1607-1665",
+    "Augustin-Louis Cauchy", "1789-1857",
+    "Bernhard Riemann", "1826-1866"
+)
+```
+
+Included in `tidyr` is `separate`, which will split a column into 2 (or more) columns.  By default, it will separate on any non-alphanumeric characters. We have to name the new columns with the `into` argument:
+```{r}
+math_peeps %>%
+    separate(Dates, 
+             into = c("Born", "Died"))
+```
+
+```{r}
+math_peeps2 <- tribble(
+    ~Name, ~Dates,
+    #-----|--------
+    "Pierre de Fermat", "(1607-1665)",
+    "Augustin-Louis Cauchy", "(1789-1857)",
+    "Bernhard Riemann", "(1826-1866)"
+)
+```
+
+We split on every non-alphanumeric character:
+```{r}
+math_peeps2 %>%
+    separate(Dates, 
+             into = c(NA, "Born", "Died", NA))
+```
+
+Shortcut if there are columns you just want to discard:  Name those columns with NAs.
+
+The reverse:  Sometimes you want to paste stuff together.  Then we use `unite`:
+```{r}
+math_peeps %>%
+    separate(Dates, 
+             into = c("Born", "Died")) %>%
+    unite("Lifespan", Born, Died, sep = " until ")
+```
+
+By default, unites with an underscore--or you can specify with `sep` argument.
+
+There is a more general way to split with separate using a regular expression, and we'll cover these a bit later.
+
+## Using Pivots for Graphing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

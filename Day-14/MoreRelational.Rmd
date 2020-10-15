@@ -1,0 +1,199 @@
+---
+title: "More Relational"
+author: "John W. Hoggard"
+date: "10/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(here)
+library(tidyverse)
+```
+Grab some data from last time:
+```{r}
+dataL <- tribble(
+    ~ID, ~LeftData,
+    #---|----------
+    "a", "a data",
+    "b", "b data",
+    "c", "c data",
+    "d", "d data"
+)
+
+dataR <- tribble(
+    ~ID, ~RightData,
+    "a",  10,
+    "b",  20,
+    "d",  30,
+    "e",  40
+)
+```
+
+
+```{r}
+tutor_logs <- read_csv(
+    here("Datasets", "Tidying", "Tutoring.csv"),
+    col_types = cols(
+  Date = col_date(format = "%m/%d/%y"),
+  Tutor = col_character(),
+  Class = col_character(),
+  `Time (in hours)` = col_double()
+)
+)
+
+tutors <- read_csv(here("Datasets", "Tidying", "Tutors.csv"))
+```
+
+## Filtering Joins
+
+Find out what is in or not in another table.
+
+**Semi-join**:  We want only stuff in Table A which has a match in Table B:  
+`semi_join(A, B)`.
+```{r}
+dataL
+```
+```{r}
+dataR
+```
+
+```{r}
+semi_join(dataL, dataR)
+```
+
+With the tutoring data:  Who in the tutoring log is actually in our personnel file?
+```{r}
+semi_join(tutor_logs, tutors)
+```
+Didnt' find a matching variable name!
+```{r}
+glimpse(tutor_logs)
+```
+```{r}
+glimpse(tutors)
+```
+Specify that the "First" in tutors is linked with "Tutor" in tutor_logs:
+```{r}
+semi_join(tutor_logs, tutors, by = c("Tutor" = "First"))
+```
+
+**Anti-join**:  If we want to know what is in A that is *not* in B, we can use
+`anti_join(A, B)`.
+```{r}
+anti_join(dataL, dataR, by = "ID")
+```
+
+You might use the same thing to "double-check" your filtering join for the tutors above:
+```{r}
+anti_join(tutor_logs, tutors, by = c("Tutor" = "First"))
+```
+
+Oh yeah--Bob is really Robert in the tutors file!
+
+Could fix it:
+```{r}
+tutor_logs[tutor_logs$Tutor == "Bob", 2] <- "Robert"
+```
+
+Now my filtering join is more responsible:
+```{r}
+semi_join(tutor_logs, tutors, by = c("Tutor" = "First"))
+```
+
+## Multiple Matches
+
+```{r}
+dataL <- tribble(
+    ~ID, ~LeftData,
+    #---|----------
+    "a", "a data",
+    "a", "a2 data",
+    "a", "a3 data",
+    "b", "b data",
+    "c", "c data",
+    "d", "d data",
+    "d", "d2 data"
+)
+
+dataR <- tribble(
+    ~ID, ~RightData,
+    "a",  10,
+    "a",  11,
+    "b",  20,
+    "d",  30,
+    "e",  40
+)
+```
+
+An inner join chooses all common variables, one for each line from dataL and dataR:
+```{r}
+inner_join(dataL, dataR)
+```
+
+Left join is same deal, but only get IDs from the left table:
+```{r}
+left_join(dataL, dataR, by = "ID")
+```
+
+But a semi-join doesn't produce multiple matches; it just filters out what isn't in the second table:
+```{r}
+semi_join(dataL, dataR)
+```
+
+Absolutely *everything* is a full join:
+```{r}
+full_join(dataL, dataR)
+```
+
+## Set Operations
+
+There are three operations: `intersect` (find what's in both), `union` (to find everything in either one), or `set_difference` (to find out what's in one but not the other).
+
+```{r}
+tutors2 <- read_csv(
+    here("Datasets", "Tidying", "Tutors2.csv")
+)
+```
+
+The columns have to match!
+```{r}
+union(tutors, tutors2)
+```
+
+What's in both?
+```{r}
+intersect(tutors, tutors2)
+```
+
+```{r}
+tutors_temp <- tutors
+tutors_temp[2, 3] <- "@0123"
+tutors_temp
+```
+
+```{r}
+union(tutors2, tutors_temp)
+```
+
+```{r}
+intersect(tutors2, tutors_temp)
+```
+
+Then what's in tutors but not in tutors2?
+```{r}
+setdiff(tutors, tutors2)
+```
+
+Is it symmetric?
+```{r}
+setdiff(tutors2, tutors)
+```
+
+
+
+
+

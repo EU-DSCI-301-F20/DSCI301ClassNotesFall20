@@ -1,0 +1,241 @@
+---
+title: "Regular Expressions"
+author: "John W. Hoggard"
+date: '2020-10-15'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+A regular expression is used to identify strings that match specific patterns.  (This is not specific to R.)
+
+
+## Basic Matches
+
+The most basic match is a string literal, or a sequence of ordinary characters.
+
+The `str_view` command will show us the part of a string that matches a regular expression:
+```{r}
+str_view("This is a string.", "is a")
+```
+
+
+You can match any sequence, except for the following special characters:
+```{r, eval = FALSE}
+\ | ( ) [ { } ^ $ * + ? .
+```
+
+These must be escaped with backslash, like `\.`.  Except backslashes *also* escape strings in R, so you must use a double backslash.  So for example:
+```{r}
+str_view("This is a string.  And another.", "string\\.")
+```
+
+
+So what do the special characters do?
+
+The period (`.`) will match any single character except a newline.  
+
+Suppose we want to find in the following file list all the three-letter files ending with the extension `.doc`, like "abc.doc", "txt.doc", etc.  Try to write a regular expression, and test it on the vector below:
+```{r}
+filelist <- c("abc.doc", "abc.xls", "q12.doc", "abcde.doc", 
+              "123.doc", "cab.doc", "pog.doc1", "Dog.doc", 
+              "pog.doc", "boo.doc", "BBB.doc", ".doc")
+# str_view(filelist, 
+#         "")
+```
+
+## Anchors
+
+Do you notice a problem?  We really don't want things like "abcde.doc" or "pog.doc1", but they matched.  We need an extra anchor:  A caret (`^`) means "the beginning of a line", and the dollar (`$`) means "the end of a line."  (These are known as anchors.)
+
+Try to fix the regular expression so that it only matches three letter files ending in just ".doc":
+```{r}
+
+```
+
+
+
+## Classes
+
+What if instead of *any* three characters, we only wanted to match files which used the letters a, b, and c (in any order), followed by ".doc"?  A *class* lets us specify a collection of characters which are allowed to match by listing the letters in brackets, like so:
+```{r}
+x <- c("a1", "b1", "c1", "d1", "e1")
+str_view(x, "[abd]1")
+```
+
+So write a match for any three-letters made up of "a", "b", and "c", ending with ".doc":
+```{r}
+
+```
+
+
+Write a regular expression to match either "gray" or "grey", and test it:
+```{r}
+
+```
+
+
+Write a regular expression to match a line which starts with an uppercase vowel, and test it:
+```{r}
+
+```
+
+
+Classes can also list ranges of values, separated with a hyphen, so `[a-c]` is equivalent to `[abc]`.  Pick out all the files with three lower-case letters, followed by ".doc":
+```{r}
+
+```
+
+
+What about any three upper- *or* lower-case letters?  (Hint:  You can list multiple ranges inside the brackets, right next to each other.)
+```{r}
+
+```
+
+Note:  We can specify to match anything *except* what is listed by starting the class with a caret (`^`).  So `[^abc]` matches anything *except* the letters a, b, or c.
+
+## Repetition
+
+There is a shortcut that will help with repetitions like the pattern above.  Following a pattern with `{n}` will repeat the pattern n times, so we don't have to type out `[a-zA-Z]` three times. Try it on the file list example:
+```{r}
+# str_view(filelist, 
+#         "")
+```
+
+
+Write a pattern to match any two digits, and test it:
+```{r}
+
+```
+
+
+
+In fact, there is a shortcut for digits:  `\d` will match any digit.  (Don't forget the extra escape for the string.) Try this with your test above:
+```{r}
+
+```
+
+
+What do you think the following will do?  Test it:
+```{r}
+str_view("a12b34c56d", "\\d\\d")
+```
+
+Now try the following:
+```{r}
+str_view_all("a12b34c56d", "\\d\\d")
+```
+
+What about this?
+```{r}
+str_view_all("1234567", "\\d\\d")
+```
+
+
+If we want to repeat a pattern 0 or more times, we can follow it with an asterisk (`*`).  Find all files in `filelist` with any number of  alphabetic characters followed by ".doc":
+```{r}
+
+```
+
+
+
+If we *actually* wanted at least one repetition (so as not to match ".doc"), we can use plus (`+`) after the pattern:
+```{r}
+str_view(filelist, "^[a-zA-Z]+\\.doc$")
+```
+
+What would ".*" match?  Test it!
+```{r}
+
+```
+
+
+
+Write a regular expression that would match any four characters (except newlines), and test it:
+```{r}
+
+```
+
+
+
+Write an expression to match the first four characters at the start of a line:
+```{r}
+
+```
+
+
+
+Write a regular expression that would match *only* if there is a single four character string:
+```{r}
+
+```
+
+
+## Alternation
+
+We can match different strings by using `|` for "or"; this is known as alternation.
+
+So "yellow|orange" would match either yellow or orange.  Parentheses allow you to group elements together.  So for example "gr(e|a)y" is equivalent to "gr[ea]y", while "gre|ay" would match either "gre" or "ay".
+
+Write a regular expression to find *either* "open disk" or "closed disk", and test it:
+```{r}
+
+```
+
+
+
+
+From the previous file list (`filelist`), find anything that consists of either three lowercase letters *or* three digits, followed by ".doc", with nothing else on the line:
+```{r}
+
+```
+
+
+
+## Other Special Characters
+
+We learned that `\d` will match a digit.  Some other special characters include:
+
+*  `\s`: Matches any whitespace (tabs, newlines, spaces, etc.)
+*  `\b`: Matches the boundary of a word.
+*  `\w`: Matches a "word" character:  alphanumeric or `_`.  (Basically, stuff that could spell variables in many programming languages.)
+*  `\D`: Matches anything *except* a digit
+*  `\W`: Matches anything *except* a "word" character
+
+Can you write an expression to find variables which appear as a word, start with a letter, end with a digit, and include any number of "word" characters in between?  Test it with the vector `x` below:
+
+```{r}
+x <- c("The expression abc_12 is one", "But is A3?  Yes!", "123a1 isn't", "But there is1 here.")
+```
+
+
+## Backreferences
+
+Whenever we group a sequence together with parentheses, the group is also stored as a backreference.  The first group is referred to with `\1`, the second with `\2`, etc.
+
+So for example, we know `..` will match any two characters (except newlines).  So `(..)\1` will match any two characters followed by *the same two characters*:
+```{r}
+str_view(c("banana", "1234345", "abcabc"), "(..)\\1")
+```
+
+What would the following R string match?  `(.)(.)\\2\\1`   (Test it!)
+
+```{r}
+
+```
+
+
+Write a regular expression to find any string which starts and ends with the same character.  Test with `x` below:
+```{r}
+x <- c("aa",  "abracadabra", "Abracadabra", "123456067")
+
+```
+
+
+The above covers the basics of regular expressions, but it is a rich topic, and it can take a long time to become a master of the art (if that's even possible).

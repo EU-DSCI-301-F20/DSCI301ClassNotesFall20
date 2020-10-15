@@ -1,0 +1,153 @@
+---
+title: "Strings"
+author: "John W. Hoggard"
+date: "10/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = T}
+library(tidyverse)
+library(here)
+library(stringr)
+```
+
+## Basic Strings
+
+Anything in quotes:
+```{r}
+"Hello, world!"
+```
+
+How do I include quotes?  Like "I said, "Hello, World!""?
+```{r}
+"I said \"Hello, World!\""
+```
+A backslash "escapes" the next character. If we want to see the string (rather than the escaped representation) there is a command `writeLines`:
+```{r}
+writeLines("I said \"Hello, World!\"")
+```
+Vectorized:
+```{r}
+writeLines(c("Hello", "I said \"Hello\""))
+```
+Other common escapes include newlines:
+```{r}
+writeLines("This is one line\nAnd this is another.")
+```
+```{r}
+"el Ni\u0f1o"
+```
+Note above: the "\u0f1" represents a Unicode character.
+
+Basic operations:  Length of a string via `str_length`:
+```{r}
+str_length("John Hoggard")
+```
+Base R equivalent:  `nchar`:
+```{r}
+nchar("John Hoggard")
+```
+The stringr version has a few nice features, like we can use it on factors: Recall in `iris` we had Species:
+```{r}
+str_length(iris$Species)
+```
+
+## Transformations in stringr
+
+Example sentence:
+```{r}
+my_sent <- "the quick brown fox jumped over the lazy dog."
+```
+
+We can change cases for example:
+```{r}
+str_to_upper(my_sent)
+```
+```{r}
+str_to_sentence(my_sent)
+```
+
+Some of this depends on *locale*.
+```{r}
+str_to_upper("i", locale = "tr")
+```
+
+We can eliminate extra whitespace with either str_trim (removes extra space at beginning or end of a string) or str_squish (removes all extra whitespace):
+```{r}
+x <- "              This string           has      lots of    whitespace.    "
+```
+```{r}
+str_trim(x)
+```
+```{r}
+str_squish(x)
+```
+
+## Combining Strings
+
+To concatenate strings, we have `str_c`:
+```{r}
+str_c("Hello", "world", sep = " there ")
+```
+
+More interesting with vectors:
+```{r}
+str_c("var", 1:5, sep = "-")
+```
+You can also collapse together the resulting vector with a `collapse` argument:
+```{r}
+str_c("var", 1:5, collapse = ", ")
+```
+
+There are some similar functions in base R; see `paste` and `paste0`:
+```{r}
+paste("var", 1:5)
+```
+
+```{r}
+paste0("var", 1:5)
+```
+
+Let's run an email scam:
+```{r}
+tutors <- read_csv(here("Datasets", "Tidying", "Tutors.csv"))
+```
+
+```{r}
+str_c(
+    "Congratulations ", 
+    tutors$First, " ",
+    tutors$Last, "!!!\n",
+    "You may have already won fabulous prizes!"
+) %>%
+    writeLines()
+```
+
+## Subsetting
+
+We can take a subset out of a string with `str_sub(<string>, <start>, <end>)`:
+```{r}
+my_name <- "John Hoggard"
+str_sub(my_name, 1, 4)
+```
+
+```{r}
+str_sub(my_name, -3, -1)
+```
+
+```{r}
+str_sub(my_name, start = 1:5, end = -1)
+```
+
+```{r}
+str_sub(my_name, 3, 5) <- "x"
+my_name
+```
+
+(That is, we can actually *assign* into the result of the substring.)
+
+

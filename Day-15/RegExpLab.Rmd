@@ -3,8 +3,8 @@ title: "Regular Expressions"
 author: "John W. Hoggard"
 date: '2020-10-15'
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -22,7 +22,7 @@ The most basic match is a string literal, or a sequence of ordinary characters.
 
 The `str_view` command will show us the part of a string that matches a regular expression:
 ```{r}
-str_view("This is a string.", "is a")
+str_view(c("This is a string.", "Is this a string?", "Whoops!"), "is a")
 ```
 
 
@@ -46,8 +46,8 @@ Suppose we want to find in the following file list all the three-letter files en
 filelist <- c("abc.doc", "abc.xls", "q12.doc", "abcde.doc", 
               "123.doc", "cab.doc", "pog.doc1", "Dog.doc", 
               "pog.doc", "boo.doc", "BBB.doc", ".doc")
-# str_view(filelist, 
-#         "")
+str_view(filelist, 
+         "...\\.doc")
 ```
 
 ## Anchors
@@ -56,7 +56,8 @@ Do you notice a problem?  We really don't want things like "abcde.doc" or "pog.d
 
 Try to fix the regular expression so that it only matches three letter files ending in just ".doc":
 ```{r}
-
+str_view(filelist, 
+         "^...\\.doc$")
 ```
 
 
@@ -71,31 +72,31 @@ str_view(x, "[abd]1")
 
 So write a match for any three-letters made up of "a", "b", and "c", ending with ".doc":
 ```{r}
-
+str_view(filelist, "[abc][abc][abc]\\.doc")
 ```
 
 
 Write a regular expression to match either "gray" or "grey", and test it:
 ```{r}
-
+str_view(c("The quick brown fox jumped over the gray dog", "This color is grey", "grape"), "gr[ae]y")
 ```
 
 
 Write a regular expression to match a line which starts with an uppercase vowel, and test it:
 ```{r}
-
+str_view(c("Over there, boys!", "Here we are.", "Another match."), "^[AEIOU]")
 ```
 
 
 Classes can also list ranges of values, separated with a hyphen, so `[a-c]` is equivalent to `[abc]`.  Pick out all the files with three lower-case letters, followed by ".doc":
 ```{r}
-
+str_view(filelist, "[a-z]\\.doc")
 ```
 
 
 What about any three upper- *or* lower-case letters?  (Hint:  You can list multiple ranges inside the brackets, right next to each other.)
 ```{r}
-
+str_view(filelist, "^[a-zA-Z][a-zA-Z][a-zA-Z]\\.doc$")
 ```
 
 Note:  We can specify to match anything *except* what is listed by starting the class with a caret (`^`).  So `[^abc]` matches anything *except* the letters a, b, or c.
@@ -104,21 +105,21 @@ Note:  We can specify to match anything *except* what is listed by starting the 
 
 There is a shortcut that will help with repetitions like the pattern above.  Following a pattern with `{n}` will repeat the pattern n times, so we don't have to type out `[a-zA-Z]` three times. Try it on the file list example:
 ```{r}
-# str_view(filelist, 
-#         "")
+str_view(filelist, 
+         "^[a-zA-Z]{3}\\.doc$")
 ```
 
 
 Write a pattern to match any two digits, and test it:
 ```{r}
-
+str_view(c("12345", "ab1c32g", "01fjh"), "[0-9]{2}")
 ```
 
 
 
 In fact, there is a shortcut for digits:  `\d` will match any digit.  (Don't forget the extra escape for the string.) Try this with your test above:
 ```{r}
-
+str_view(c("12345", "ab1c32g", "01fjh"), "\\d{2}")
 ```
 
 
@@ -140,7 +141,7 @@ str_view_all("1234567", "\\d\\d")
 
 If we want to repeat a pattern 0 or more times, we can follow it with an asterisk (`*`).  Find all files in `filelist` with any number of  alphabetic characters followed by ".doc":
 ```{r}
-
+str_view(filelist, "^[A-Za-z]*\\.doc$")
 ```
 
 
@@ -152,28 +153,28 @@ str_view(filelist, "^[a-zA-Z]+\\.doc$")
 
 What would ".*" match?  Test it!
 ```{r}
-
+str_view(c("a", "", "b12", "1334"), ".*")
 ```
 
 
 
 Write a regular expression that would match any four characters (except newlines), and test it:
 ```{r}
-
+str_view(c("This is a test", "12345", "1 2 3 4 5", "abc"), ".{4}")
 ```
 
 
 
 Write an expression to match the first four characters at the start of a line:
 ```{r}
-
+str_view(c("This is a test", "12345", "1 2 3 4 5"), "^.{3}")
 ```
 
 
 
 Write a regular expression that would match *only* if there is a single four character string:
 ```{r}
-
+str_view(c("This is a test", "12345", "1 2 3 4 5", "abcd"), "^.{4}$")
 ```
 
 
@@ -185,7 +186,7 @@ So "yellow|orange" would match either yellow or orange.  Parentheses allow you t
 
 Write a regular expression to find *either* "open disk" or "closed disk", and test it:
 ```{r}
-
+str_view(c("This is a closed disk", "This disk is not open", "open disk"), "closed disk|open disk")
 ```
 
 
@@ -193,7 +194,7 @@ Write a regular expression to find *either* "open disk" or "closed disk", and te
 
 From the previous file list (`filelist`), find anything that consists of either three lowercase letters *or* three digits, followed by ".doc", with nothing else on the line:
 ```{r}
-
+str_view(filelist, "^([a-z]{3}|[0-9]{3})\\.doc$")
 ```
 
 
@@ -212,6 +213,7 @@ Can you write an expression to find variables which appear as a word, start with
 
 ```{r}
 x <- c("The expression abc_12 is one", "But is A3?  Yes!", "123a1 isn't", "But there is1 here.")
+str_view(x, "\\b[A-Za-z]\\w*[0-9]\\b")
 ```
 
 
@@ -227,14 +229,14 @@ str_view(c("banana", "1234345", "abcabc"), "(..)\\1")
 What would the following R string match?  `(.)(.)\\2\\1`   (Test it!)
 
 ```{r}
-
+str_view(c("ABBA", "Anytime"), "(.)(.)\\2\\1")
 ```
 
 
 Write a regular expression to find any string which starts and ends with the same character.  Test with `x` below:
 ```{r}
 x <- c("aa",  "abracadabra", "Abracadabra", "123456067")
-
+str_view(x, "^(.).*\\1$")
 ```
 
 

@@ -167,7 +167,7 @@ str_view(c("This is a test", "12345", "1 2 3 4 5", "abc"), ".{4}")
 
 Write an expression to match the first four characters at the start of a line:
 ```{r}
-str_view(c("This is a test", "12345", "1 2 3 4 5"), "^.{3}")
+str_view(c("This is a test", "12345", "1 2 3 4 5"), "^.{4}")
 ```
 
 

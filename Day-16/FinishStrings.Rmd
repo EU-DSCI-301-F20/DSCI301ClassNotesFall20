@@ -1,0 +1,182 @@
+---
+title: "Strings, Contd"
+author: "John W. Hoggard"
+date: "10/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## More on Using Regular Expressions
+
+Let's say you wanted to take a vector and look for something like an a/A followed by any two letters:
+```{r}
+x <- c("Anything is a good thing", "aaaaaaa", "Something else here, good or bad.")
+```
+
+Usually we just put down a string:
+```{r}
+str_view_all(x, "[aA]..")
+```
+
+Really, the string is wrapped in a function called `regex`:
+```{r}
+str_view(x, regex("[aA].."))
+```
+
+You have some nice arguments.  For example, you can enable comments in regular expressions with `regex`:
+```{r}
+pattern <- regex(
+    "[aA] # upper lower case A
+    ..    # any two characters
+    ",
+    comment = TRUE
+)
+```
+```{r}
+str_view(x, pattern)
+```
+
+If you just want a fixed string, you can use `fixed` instead of `regex`:
+```{r}
+str_view("This is Mr. Smith", fixed("Smith"))
+```
+
+This can be problematic with other languages or special characters.
+
+## Finding Matches
+
+To find all the values in a vector which match a regular expression, we have `str_detect(<vector>, <regex>)`.
+```{r}
+x <- c("Abba", "Abracadabra", "oh no")
+str_detect(x, "[Aa]..a")
+```
+
+Could use this in a filter, for example:
+```{r}
+x <- c("Alabama", "Arkansas", "National CS Data", "National Math Data")
+str_detect(x, fixed("National"))
+```
+
+We could subset like so:
+```{r}
+x[str_detect(x, fixed("National"))]
+```
+
+But I can also use logical operations: ! (not), & (and), | (or):
+```{r}
+x[! str_detect(x, fixed("National"))]
+```
+
+There is a `words` vector with words in it. I could look for stuff that has a q, but not an r:
+```{r}
+pat1 <- str_detect(words, "q")
+pat2 <- str_detect(words, "r")
+words[ pat1 & (! pat2)]
+```
+
+```{r}
+words[pat1 & pat2]
+```
+
+The `str_detect` is similar to `grepl` in base R, but the vector comes first.
+
+## Counting Matches
+
+We can use `str_count` to count matches:
+```{r}
+x <- c("Abba", "abracadabra", "aaaaaaaa", "oh no")
+str_count(x, "[Aa]..a")
+```
+
+## Extraction
+
+Sometimes we want to extract whatever matches from a string. Use `str_extract(vector, <pattern>)`:
+```{r}
+str_extract(x, "[Aa]..a")
+```
+
+If you want everything, you need `str_extract_all`:
+```{r}
+str_extract_all(x, "[Aa]..a")
+```
+
+You can get a so-called matrix if we add `simplify = TRUE`:
+
+```{r}
+str_extract_all(x, "[Aa]..a", simplify = TRUE)
+```
+
+Grades: Distributions of As, Bs, Cs, etc.?
+```{r}
+grades <- tribble(
+    ~Name, ~Grade,
+    "Bob", "B",
+    "Cindy", "A-",
+    "Doug", "B-H",
+    "Erika", "AH",
+    "Ginny", "D+",
+    "Jazmine", "B+",
+    "Frank", "D-",
+    "Willy", "S"
+    )
+```
+
+```{r}
+grades %>%
+    mutate(letter_grade = str_extract(Grade,
+                                      "[ABCDFWUS]")) %>%
+    count(letter_grade)
+```
+
+## Splitting Strings
+
+We've already seen `separate` in `tidyr` that splits columns. (In fact, it will split on a regular expression, if you tell it to.)  If you just want to split strings, there is `str_split`:
+```{r}
+str_split("Now is the time for        all    good    people ... etc.",
+          "\\s+")
+```
+
+## String Replacement
+
+We can replace the found regular expressions with `str_replace` and `str_replace_all`:
+```{r}
+str_replace("Fred told me Hi", "Fred", "Velma")
+```
+
+```{r}
+str_replace_all("`Ruh roh` said Scooby, really!", "[Rr]", "")
+```
+
+This can be useful trick for data cleaning:
+```{r}
+conditions <- c(
+    "Snow", "rain", "clear", "Rainy", "Raining", "raining", "Raining", "Sunny",
+    "rainy", "windy", "Clear", "Rain", "It was raining, bro"
+)
+str_replace_all(conditions, ".*[Rr]ain.*", "rain")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

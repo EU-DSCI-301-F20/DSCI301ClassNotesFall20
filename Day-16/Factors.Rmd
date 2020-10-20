@@ -1,0 +1,110 @@
+---
+title: "Factors"
+author: "John W. Hoggard"
+date: "10/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Factors in Base R
+
+We can create factors for categorical data in base R:
+```{r}
+eyecolor <- factor(
+    c("brown", "blue", "brown", "brown", "hazel", "blue", "brown", "blue")
+)
+```
+
+```{r}
+str(eyecolor)
+```
+
+```{r}
+eyecolor
+```
+
+What the "levels" are for your factor:
+```{r}
+levels(eyecolor)
+```
+
+By default alphabetical, but can change the order with a `levels` vector in the `factor` command:
+```{r}
+eyecolor <- factor(
+    c("brown", "blue", "brown", "brown", "hazel", "blue", "brown", "blue"), 
+    levels = c("hazel", "brown", "blue")
+)
+```
+
+```{r}
+levels(eyecolor)
+```
+
+By default, it doesn't matter for most things:
+```{r}
+eyecolor[1] < eyecolor[2]
+```
+
+Can create an *ordered* factor:
+```{r}
+eyecolor <- factor(
+    c("brown", "blue", "brown", "brown", "hazel", "blue", "brown", "blue"), 
+    levels = c("hazel", "brown", "blue"),
+    ordered = TRUE
+)
+eyecolor[1] < eyecolor[2]
+```
+Can also adjust the levels directly:
+```{r}
+levels(eyecolor)[1] <- "Hazel"
+```
+
+```{r}
+levels(eyecolor)
+```
+
+## With forcats: Lumping
+
+Package forcats:
+```{r}
+library(forcats)
+```
+
+We can "lump together" your less frequently appearing categories into some sort of "other" category.  Use `fct_lump`, with argument `n` that tells us how many to keep.
+```{r}
+starwars %>%
+    filter(!is.na(species)) %>%
+    select(name, species) %>%
+    mutate(species = fct_lump(species, n = 3)) %>%
+    count(species) %>%
+    arrange(desc(n))
+```
+
+Alternate form:  `lump_min` will group stuff with fewer than `min` entries
+```{r}
+starwars %>%
+    filter(!is.na(species)) %>%
+    select(name, species) %>%
+    mutate(species = fct_lump_min(species, min = 2)) %>%
+    count(species)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

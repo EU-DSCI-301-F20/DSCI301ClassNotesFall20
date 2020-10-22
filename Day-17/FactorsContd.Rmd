@@ -1,0 +1,185 @@
+---
+title: "More Factors with forcats"
+author: "John W. Hoggard"
+date: "10/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+```
+
+## Factors: Reordering
+
+We have some helper functions to reorder:
+
+  * `fct_inorder`: Reorders a factor variable by the first appearance of a factor.
+  * `fct_infreq`: Reorders a factor variable by the frequency of a factor (most to least common)
+  * `fct_inseq`: If it's numeric, put it in numerical order.
+
+```{r}
+eyecolor <- factor(
+    c("brown", "blue", "hazel", "brown", "brown", "brown", "blue"),
+    ordered = TRUE)
+eyecolor
+```
+
+```{r}
+fct_inorder(eyecolor)
+```
+
+```{r}
+fct_infreq(eyecolor)
+```
+
+Why? Star Wars data:
+```{r}
+starwars %>%
+    filter(!is.na(species)) %>%
+    mutate(species = fct_infreq(fct_lump(species, n = 8))) %>%
+    count(species) %>%
+    ggplot(aes(x = species, y = n)) +
+        geom_col()
+```
+
+Let's do similar with the heros data set:
+```{r}
+heros <- read_csv(na = c("-99.0", "-"),
+    here("Datasets", "heroes_information.csv"), 
+    col_types = cols(
+  X1 = col_double(),
+  name = col_character(),
+  Gender = col_factor(),
+  `Eye color` = col_factor(),
+  Race = col_factor(),
+  `Hair color` = col_factor(),
+  Height = col_double(),
+  Publisher = col_character(),
+  `Skin color` = col_factor(),
+  Alignment = col_factor(),
+  Weight = col_double()
+)
+)
+```
+
+Let's look at the eye colors:
+```{r}
+heros %>%
+    filter(!is.na(`Eye color`)) %>%
+    mutate(eye_color = fct_infreq(fct_lump(`Eye color`, n = 8))) %>%
+    count(eye_color) %>% arrange(desc(n)) %>%
+    ggplot(aes(x = eye_color, y = n)) + 
+        geom_col()
+```
+
+We can also reorder factors by a second vector using `fct_reorder`. By default, it reorders by the median value taken from the second vector.
+```{r}
+data <- tibble(
+    ec = eyecolor, 
+    n = c(5, 4, 3, 6, 5, 6, 1)
+)
+data
+```
+```{r}
+fct_reorder(data$ec, data$n)
+```
+
+For example:
+```{r}
+iris %>%
+    ggplot(aes(x = fct_reorder(Species, Sepal.Width),
+                                y = Sepal.Width)) + 
+        geom_boxplot()
+```
+
+## Changing Factors
+
+We can manually change factors:
+```{r}
+eyecolor
+```
+
+```{r}
+levels(eyecolor)[3] <- "Hazel"
+eyecolor
+```
+
+But from forcats, we have `fct_recode`, which is simpler to understand: We specify what to name the new categories:
+```{r}
+fct_recode(eyecolor,
+           "Brown" = "brown",
+           "Blue" = "blue")
+```
+
+We also have `fct_collapse`, which does something similar, but you get to provide a vector of old factors on the right hand side.
+```{r}
+fct_collapse(eyecolor,
+             "Brown/Hazel" = c("brown", "Hazel"))
+```
+
+In the heros set:
+```{r}
+heros %>%
+    filter(!is.na(`Eye color`)) %>% 
+    count(`Eye color`)
+```
+
+There are a certain number of "mixed" eye colors; why don't we put those together?
+```{r}
+heros %>%
+    filter(!is.na(`Eye color`)) %>%
+    .$`Eye color` -> eyecols
+```
+
+```{r}
+mixed <- str_subset(eyecols, "/")
+```
+
+Now collapse:
+```{r}
+fct_collapse(heros$`Eye color`, 
+             "Mixed" = mixed) %>% levels
+```
+
+Also have a `fct_reorder2`, which reorders the factor based on the values in *two* vectors, x and y, according to the largest y value for the last x value.  (What????)
+
+Let's go back to our AP data set:
+```{r}
+ap_data <- read_csv(here("Datasets", "pass_06_13.csv"),
+                    na = c("", "*"),
+                    col_types = cols(
+                        .default = col_number(),
+                        state = col_character()
+                    ))
+```
+
+Now: Let's look at number passed per year, by various categories:
+```{r}
+ap_data %>%
+    filter(year > 2005) %>%
+    filter(str_detect(state, "National.*CS")) %>%
+    pivot_longer(cols = ends_with("_passed"),
+                 names_to = "Category",
+                 values_to = "Passed") %>%
+    mutate(Category = fct_reorder2(Category, year, Passed)) %>%
+    ggplot(aes(x = year, y = Passed, color = Category)) +
+        geom_line() + geom_point()
+```
+
+It makes the line graph match the legend (on the right).
+
+
+
+
+
+
+
+
+
+
+
+
+
+

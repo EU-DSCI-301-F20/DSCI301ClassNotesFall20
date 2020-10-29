@@ -1,0 +1,191 @@
+---
+title: "Dates"
+author: "John W. Hoggard"
+date: "10/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+```
+
+## Dates in Base R
+
+Different formats in R for holding dates:  POSIXct and POSIXlt:
+```{r}
+(right_now <- Sys.time())
+```
+
+```{r}
+unclass(as.POSIXct(right_now))
+```
+
+```{r}
+unclass(as.POSIXlt(right_now))
+```
+
+Base R can convert strings to times with a format string, using `strptime`:
+```{r}
+(a_date <- strptime("10/27/2020", "%m/%d/%Y"))
+```
+
+```{r}
+str(a_date)
+```
+I can actually extract pieces from the result:
+
+```{r}
+a_date$mday
+```
+
+## Conversions with `lubridate`
+
+Have a family of functions for converting strings to dates:
+```{r}
+mdy(c("Jan 5, 1975", "5/5/1980", "6-12-2012")) 
+```
+
+```{r}
+mdy("July 17, 1955")
+```
+
+Other orders exist also:
+```{r}
+ymd("2020-10-27")
+```
+
+We can also have date-time objects:
+```{r}
+ymd_hm("2010, March 11, 4:27 pm")
+```
+
+Can get even more specific, by including a timezone, with `tz` argument.  What's our timezone?
+```{r}
+Sys.timezone()
+```
+
+```{r}
+ymd_hm("2010, March 11, 4:27 pm", tz = "America/New_York")
+```
+
+I can also subtract times:
+```{r}
+ymd_hm("2010, March 11, 4:27 pm", tz = "America/New_York") -
+    ymd_hm("2010, March 11, 4:27 pm", tz = "GMT")
+```
+
+Other useful functions:
+```{r}
+today()
+```
+
+
+```{r}
+now()
+```
+
+How long since the semester started?
+```{r}
+today() - ymd("2020-08-17")
+```
+
+More specific?
+```{r}
+now() - ymd_h("2020-08-17 8 am")
+```
+
+Find out how many days old you are today!
+```{r}
+today() - ymd(20000530)
+```
+
+Lubridate also includes some accessor functions to get pieces of a date/time object:
+```{r}
+year(a_date)
+```
+```{r}
+month(a_date)
+```
+```{r}
+hour(a_date)
+```
+```{r}
+wday(a_date, label = TRUE)
+```
+
+What day of the week were you born on?
+```{r}
+wday(ymd(20000530), label = TRUE)
+```
+
+Can also produce date/time objects out of individual components with `make_datetime`:
+```{r}
+make_date(year = 2008, month = 11, day = 17)
+```
+
+Your accessor function can be used to change a date component too:
+```{r}
+a_date
+```
+
+```{r}
+year(a_date) <- 2019
+a_date
+```
+
+## Timespans
+
+Differences are `difftime` type, specify with units.
+```{r}
+from_start <- now() - ymd_h(2020081708)
+str(from_start)
+```
+
+A duration on the other hand is recorded as a number of seconds:
+```{r}
+str(as.duration(from_start))
+```
+```{r}
+unclass(as.duration(from_start))
+```
+
+If I want a specific duration, we can this with a set of functions that start with d:
+```{r}
+# 10 seconds
+dseconds(10)
+```
+
+```{r}
+# 10 days
+ddays(10)
+```
+
+What will the date be in 68 days?
+```{r}
+today() + ddays(68)
+```
+Apparently a number is interpreted as days:
+```{r}
+today() + 68
+```
+
+What will the date be in 68 hours:
+```{r}
+now() + dhours(68)
+```
+
+We can divide durations:  How much of this year has been spent in Fall semester?
+```{r}
+( as.duration( now() - ymd_h(2020081708))) / (as.duration(now() - ymd_h(2020010100)))
+```
+
+What percent of your life happened since you first started college?
+
+
+
+
+
+
+

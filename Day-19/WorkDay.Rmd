@@ -1,0 +1,77 @@
+---
+title: "Work Day"
+author: "John W. Hoggard"
+date: "10/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(gapminder)
+library(tidyverse)
+```
+
+A few approaches to splitting the continent factor in gapminder:
+```{r}
+my_gap <- gapminder
+```
+
+I need more factors than I currently have in `continent`, so I used `fct_expand`:
+```{r}
+my_gap$continent <- fct_expand(my_gap$continent, "South America")
+levels(my_gap$continent)
+my_gap$continent <- fct_recode(my_gap$continent, `North America` = "Americas")
+levels(my_gap$continent)
+fct_count(my_gap$continent)
+```
+
+Move these to south america:
+```{r}
+SA <-  c("Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Ecuador", 
+      "Paraguay", "Peru", "Uruguay", "Venezuela")
+```
+
+```{r}
+my_gap[my_gap$country %in% SA, "continent"] <- "South America"
+```
+
+So now I've got south/north America:
+```{r}
+fct_count(my_gap$continent)
+```
+
+```{r}
+gap2 <- gapminder
+gap2 %>%
+    mutate(
+        as_factor(
+            if_else(
+                as.character(country) %in% SA,
+                "South America",
+                as.character(country)
+            )
+        )
+    ) -> gap2
+```
+
+```{r}
+gap2
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

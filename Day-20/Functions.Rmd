@@ -1,0 +1,294 @@
+---
+title: "Functions"
+author: "John W. Hoggard"
+date: "11/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Functions
+
+You know how to *use* functions:
+```{r}
+vec <- 1:10
+mean(vec)
+```
+```{r}
+sum(vec)
+```
+```{r}
+length(vec)
+```
+
+We can also write our own functions with the `function`:
+```{r}
+f <- function(x) {
+    x^2
+}
+```
+
+I can use this just like a built-in function:
+```{r}
+f(-3)
+```
+
+By default, the last line evaluated in a function is the "return value", but you can be more explicit, with a return statement:
+```{r}
+f <- function(x) {
+    2*x - 3  # Silly, because it does nothing
+    return(x^2)
+}
+```
+
+```{r}
+f(2)
+```
+
+```{r}
+g <- function(x) {
+    x <- x + 1;
+    x^2
+}
+```
+
+So for example:
+```{r}
+g(2)
+```
+
+We can have multiple parameters:
+```{r}
+add_two <- function(x, y) {
+    return(x + y)
+}
+```
+
+```{r}
+add_two(5, 3)
+```
+
+Of course, we can do things with vectors, too:
+```{r}
+f(1:10)
+```
+
+Like suppose we want a "deviation" function to get a typical deviation from the mean (not the *standard deviation*):
+```{r}
+deviation <- function(vec) {
+    avg <- mean(vec)
+    abs(vec - avg)
+}
+```
+
+```{r}
+deviation(1:5)
+```
+
+```{r}
+x1 <- 1:5
+mean(x1)
+abs(x1 - mean(x1))
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+iris %>% mutate(
+    dev_Sepal.Length = deviation(Sepal.Length)
+)
+```
+
+Now we have an easy function to find the mean (`mean`), but let's write our own function to find the mean of a vector:
+```{r}
+my_mean <- function(vec) {
+    total <- sum(vec)
+    num_elts <- length(vec)
+    total / num_elts
+}
+```
+
+```{r}
+my_mean(1:10)
+```
+
+```{r}
+mean(1:10)
+```
+
+Built-in `mean` does have some extra features:
+```{r}
+x2 <- c(1, 2, 5, 7, NA)
+mean(x2, na.rm = TRUE)
+```
+
+```{r}
+my_mean(x2)
+```
+
+How about the standard deviation:
+```{r}
+my_sd <- function(vec) {
+    mu <- mean(vec)
+    sqrt(
+        sum( (vec - mu)^2) / (length(vec) - 1)
+        )
+}
+```
+
+
+```{r}
+my_sd(1:10)
+```
+
+```{r}
+sd(1:10)
+```
+
+I can add extra arguments:
+```{r}
+my_sd <- function(vec, rem_na = FALSE) {
+    mu <- mean(vec, na.rm = rem_na)
+    no_na <- sum(is.na(vec))
+    sqrt(
+        sum( (vec - mu)^2, na.rm = rem_na) / (length(vec) - no_na - 1)
+        )
+}
+```
+
+
+```{r}
+sd(x2, na.rm = TRUE)
+```
+
+```{r}
+my_sd(x2, rem_na = TRUE)
+```
+
+```{r}
+my_sd(x2, rem_na = FALSE)
+```
+
+Do have named arguments:
+```{r}
+my_sd(vec = x2, rem_na = TRUE)
+```
+
+```{r}
+my_sd(x2, TRUE)
+```
+
+```{r}
+sd(x = x2, na.rm = TRUE)
+```
+
+The names always allow you to specify the arguments:
+```{r}
+sd(na.rm = TRUE, x = x2)
+```
+
+Since we set `rem_na = FALSE` by default, we don't have to provide that argument:
+```{r}
+my_sd(x2)
+```
+
+```{r}
+my_sd(x2, TRUE)
+```
+
+Functions don't actually have to be named:
+```{r}
+(function(x) {x+5})(2)
+```
+
+```{r}
+integrate(function(x) x^2, 0, 2)
+```
+
+## Conditionals
+
+```{r}
+x <- 5
+if (x < 5) {
+    print("Less than 5.")
+} else if (x > 5) {
+    print("Greater than 5.")
+} else {
+    print("Equal to 5.")
+}
+```
+
+Let's write a maximum function, to find the biggest of two values:
+```{r}
+my_max <- function(x, y) {
+    if (x > y) {
+        return(x)
+    } else {
+        return(y)
+    }
+}
+```
+
+```{r}
+my_max(2, 3)
+```
+
+```{r}
+my_max(3, 2)
+```
+
+```{r}
+my_max(5, 5)
+```
+
+Or you can do it the CSCI 130/230/330 way:
+```{r}
+my_max <- function(x, y) {
+    if (x > y) {
+        maximum <- x
+    } else {
+        maximum <- y
+    }
+    return(maximum)
+}
+```
+
+Let's make a summary stats function, which returns different stats depending on whether we want parametric or non-parametric.  In the case of parametric, let's get back a mean and a standard deviation.  In non-parametric, let's use median and mean average deviation.
+```{r}
+summary_stat <- function(x, parametric = TRUE) {
+    if ( parametric ) {
+        return(
+            c("Mean" = mean(x), "StdDev" = sd(x))
+        )
+    } else {
+        return(
+            c("Median" = median(x) , "MAD" = mad(x))
+        )
+    }
+}
+```
+
+```{r}
+summary_stat(1:10)
+```
+
+```{r}
+summary_stat(1:10, parametric = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

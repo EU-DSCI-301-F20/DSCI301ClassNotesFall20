@@ -1,0 +1,117 @@
+---
+title: "Iteration"
+author: "John W. Hoggard"
+date: "11/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## For Loop
+
+General structure:
+```{r, eval = F}
+for (val in vector) {
+    <commands>
+}
+```
+
+This is a "ranged" for loop; there is no incrementing a variable.
+```{r}
+wds <- c("Mary", "mary", "quite", "contrary")
+for (x in wds) {
+    print(x)
+}
+```
+
+```{r}
+library(stringr)
+for (x in wds) {
+    x <- str_to_upper(x)
+    print(x)
+}
+```
+
+But we didn't actually change any elements in the vector:
+```{r}
+wds
+```
+
+If I really want to make changes to the original vector, I could use an index, and access the elements directly, one at a time:
+```{r}
+for ( index in 1:4 ) {
+    wds[index] <- str_to_upper(wds[index])
+}
+wds
+```
+
+Better:  Use `seq_along` to produce the indices we need:
+```{r}
+seq_along(wds)
+```
+
+Creates a vector of same length as the vector we start with.  Caution: It looks like the following would also work:
+```{r}
+1:length(wds)
+```
+
+But what about an empty vector:
+```{r}
+empty_vector <- vector(mode = "character", 0)
+seq_along(empty_vector)
+```
+
+```{r}
+1:length(empty_vector)
+```
+
+Let's generate some lists of random normal variables:
+```{r}
+ten_samples = list()
+
+for (i in 1:10) {
+    ten_samples[[i]] <- rnorm(20)
+    # 20 values from random normal mean 0, sd = 1
+}
+```
+
+```{r}
+ten_samples
+```
+
+What are the means of these ten random samples?
+
+A naive way to do this:
+```{r}
+avgs <- vector()
+for ( numbers in ten_samples ) {
+    avgs <- c(avgs, mean(numbers))
+}
+```
+
+```{r}
+avgs
+```
+
+This is inefficient. Each time we grow a vector, we have to reallocate memory space to hold that vector.  
+
+Better: Preallocate the entire vector for the results first:
+```{r}
+avgs <- vector(mode = "double", 10)
+for ( i in seq_along(ten_samples) ) {
+    avgs[[i]] <- mean(ten_samples[[i]])
+}
+```
+
+```{r}
+avgs
+```
+
+Moral: Never "grow" a vector by adding to it in a loop.
+
+
+
+
+

@@ -1,0 +1,167 @@
+---
+title: "More Functions"
+author: "John W. Hoggard"
+date: "11/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Fizzbuzz Function
+
+"Implement a fizzbuzz function. It takes a single number as input. If the number is divisible by three, it returns “fizz”. If it’s divisible by five it returns “buzz”. If it’s divisible by three and five, it returns “fizzbuzz”. Otherwise, it returns the number. Make sure you first write working code before you create the function."
+
+```{r}
+fizzbuzz <- function(x) {
+    mod3 <- (x %% 3 == 0) # Remainder on div by 3 is zero.
+    mod5 <- (x %% 5 == 0) # Remainder on div by 5 is zero.
+    if ( mod3 && mod5 ) {
+        return("fizzbuzz")
+    } else if ( mod3 ) {
+        return("fizz")
+    } else if ( mod5 ) {
+        return("buzz")
+    } else {
+        return(x)
+    }
+}
+```
+
+Let's test a bit:
+```{r}
+fizzbuzz(1)
+```
+
+```{r}
+fizzbuzz(3)
+```
+
+```{r}
+fizzbuzz(4)
+```
+
+```{r}
+fizzbuzz(5)
+```
+
+```{r}
+fizzbuzz(15)
+```
+
+This won't really work with vectors:
+```{r}
+fizzbuzz(1:20)
+```
+
+## Multiple cases: switch
+
+Let's respond to how the user is feeling:
+```{r}
+IAm <- function(feeling) {
+    res <- switch(feeling,
+        happy = "I'm glad you're happy.",   
+        sad   = "I'm sorry you're sad.",
+        confused = "What's confusing?",
+        "I don't know what that means."   # Default case.
+    )
+    print(res)
+}
+```
+
+So what happens:
+```{r}
+IAm("happy")
+```
+
+```{r}
+IAm("sad")
+```
+
+```{r}
+IAm("confused")
+```
+
+```{r}
+IAm("tired")
+```
+
+You do have "fall-through" behavior on blank lines:
+```{r}
+f <- function(x) {
+    switch(x,
+           a = "That's an a.",
+           b = ,
+           c = "It's a b or a c.",
+           "Nothing matched!"
+    )
+}
+```
+
+So:
+```{r}
+f("a")
+```
+
+```{r}
+f("b")
+```
+
+```{r}
+f("x")
+```
+
+If you use an *integer* as input (or something that can be coerced to an integer) switch gives the expression at the position of the *numbered* option, or nothing if we're too big:
+```{r}
+numbered <- function(x) {
+    switch(x, 
+           "Case 1", 
+           "Case 2",
+           "Case 3", 
+           "Case 4",
+           ,
+           "Oops!"
+    )
+}
+```
+
+```{r}
+numbered(2)
+```
+
+
+```{r}
+numbered(4)
+```
+
+```{r}
+numbered(5)
+```
+
+```{r}
+numbered(2.6)
+```
+
+```{r}
+numbered(0)
+```
+
+## Using `cut`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

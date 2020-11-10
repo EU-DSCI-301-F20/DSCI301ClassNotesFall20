@@ -1,0 +1,183 @@
+---
+title: "Vectors"
+author: "John W. Hoggard"
+date: "11/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Vectors
+
+Vectors are what we usually use for listings of alike items:
+```{r}
+x <- c(2, 3, 4, 7)
+```
+
+```{r}
+x
+```
+
+In fact, everything is a vector:
+```{r}
+7
+```
+
+We have types:
+```{r}
+typeof(x)
+```
+
+There are also actually integers:
+```{r}
+typeof(1:5)
+```
+
+```{r}
+typeof(c(1, 2, 3, 4, 5))
+```
+Also character types:
+```{r}
+typeof(c("Joe", "Sue"))
+```
+
+When you start combining items in a vector, it automatically switches to a common type:
+```{r}
+typeof(c(1:5, 2.0))
+```
+
+```{r}
+typeof(c(1:5, "six"))
+```
+
+We can extract elements using `[]`:
+```{r}
+x[2:3]
+```
+
+If you want to extract exactly *one* thing from a vector, you can use `[[]]`:
+```{r}
+x[[2]]
+```
+
+Objects in R have attributes:
+```{r}
+attributes(x)
+```
+
+Named vectors have attributes for the name:
+```{r}
+y <- c("First" = 1, "Second" = 2)
+y
+```
+
+```{r}
+y[["Second"]]
+```
+
+```{r}
+attributes(y)
+```
+
+Can get to the names with the helper function `names`:
+```{r}
+names(y) <- c("Shirley", "Fred")
+y
+```
+
+Matrices have dimension attribute:
+```{r}
+mtx <- matrix(1:6, nrow = 2)
+mtx
+```
+
+```{r}
+attributes(mtx)
+```
+
+```{r}
+dim(mtx) <- c(3, 2)
+mtx
+```
+
+## Lists
+
+Lists are kind of like vectors, but you can hold *anything*, and the elements can be of different types:
+```{r}
+z <- list("first" = 5, "second" = "Bob Smith", 
+          "third" = 1:10)
+z
+```
+
+I mean, we can can *really* put anything in a list:
+```{r}
+z2 <- list(5:10, z, c("a", "b", "c"))
+z2
+```
+
+Extracting from a list can use `[]`, and can extract ranges--but I get another list:
+```{r}
+str(z[2:3])
+```
+
+```{r}
+z[2]
+```
+
+But `[[]]` extracts the element:
+```{r}
+z[[2]]
+```
+
+Double brackets breaks out of list:
+```{r}
+z2[[2]]
+```
+
+Single brackets leaves the top level list intact:
+```{r}
+z2[2]
+```
+
+Can also index multiple times:
+```{r}
+z2[[2]][[3]]
+```
+
+We can also extract named elements from a list with `$`:
+```{r}
+z$first
+```
+
+```{r}
+z$second
+```
+
+What's a data frame?
+```{r}
+df <- data.frame(x = 1:10, y = 2*(1:10))
+str(df)
+```
+
+```{r}
+df[[2]]
+```
+
+In other words, a data from is a list of vectors--with attributes.
+```{r}
+attributes(df)
+```
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,105 @@
+---
+title: "More Iteration"
+author: "John W. Hoggard"
+date: "11/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## A Bit More on Preallocation
+
+You can preallocate a list:
+```{r}
+ten_different_samples <- vector(mode = "list", 10)
+means <- 1:10
+for (index in seq_along(means)) {
+    ten_different_samples[[index]] <- rnorm(20, mean = means[[index]])
+}
+```
+
+```{r}
+ten_different_samples
+```
+
+Similar:
+```{r}
+x <- c("Bob", "Sally", "Francine", "Arthur")
+out <- ""
+for (name in x) {
+    out <- paste(out, name)
+}
+out
+```
+
+More efficient:
+```{r}
+paste(x, collapse = " ")
+```
+
+You *could* add rows to a dataframe using `rbind`:
+```{r}
+rbind(head(iris), c(1.2, 2.1, 3.4, 1.6, "virginica"))
+```
+
+But doing this repeatedly is expensive. Don't loop through adding more stuff onto the end of a data frame.  Instead, if we want to put lots of stuff together, use `dplyr::bind_rows`:
+```{r}
+dplyr::bind_rows(iris[1:2,], iris[15:20,], iris[22:24,])
+```
+
+## While Loop
+
+Needed in particular if we don't know how many times to repeat something:
+```{r, eval = F}
+while (condition) {
+    <statements>
+}
+```
+
+How long does it take to get something less than 0 out of a random normal distribution with mean of 1 and standard deviation of 1?
+```{r}
+count <- 1
+x <- rnorm(1, mean = 1)
+while ( x >= 0 ) {
+    print(paste(x, ">= 0; try #", count))
+    count <- count + 1
+    x <- rnorm(1, mean = 1)
+}
+
+```
+```{r}
+x
+```
+
+```{r}
+count
+```
+
+## Maps with purrr
+
+Part of the tidyverse (`purrr`) for iteration.  Uses a `map` function to "map" a function over a vector or list.
+```{r, eval = F}
+map(<list>, <f>)
+```
+
+will apply `f` to each element of `list`, and return the resulting list.
+
+```{r}
+library(purrr)
+map(ten_different_samples, mean)
+```
+
+Returns a list, but we could reformat this:
+```{r}
+map(ten_different_samples, mean) %>% as_vector()
+```
+
+
+
+
+
+
+
+

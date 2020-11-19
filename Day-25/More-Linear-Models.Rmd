@@ -1,0 +1,135 @@
+---
+title: "Further Modeling"
+author: "John W. Hoggard"
+date: "11/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Linear Models
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+glimpse(mtcars)
+```
+
+Built a model of mpg based on hp:
+```{r}
+hp_mod <- lm( mpg ~ hp, data = mtcars)
+hp_mod
+```
+
+How good is the fit?
+```{r}
+library(modelr)
+mtcars %>% add_predictions(hp_mod, var = "Pred") %>%
+    add_residuals(hp_mod, var = "Resid") %>%
+    ggplot(aes(x = hp, y = mpg)) +
+    geom_point() +
+    geom_line(aes(y = Pred))
+```
+
+Residuals?
+```{r}
+mtcars %>% 
+    add_residuals(hp_mod, var = "Resid") %>%
+    ggplot(aes(x = Resid)) +
+    geom_histogram(bins = 10)
+```
+
+## Multiple Regressors
+
+```{r}
+toy2 <- tibble(
+    x = 1:30,
+    y = runif(30)*10,
+    Out = 3*x -2*y + 5 + rnorm(30)
+)
+```
+
+```{r}
+mod_toy <- lm(Out ~ x + y, data = toy2)
+mod_toy
+```
+
+Residuals?
+```{r}
+toy2 %>% add_residuals(mod_toy, var = "Resid") %>%
+    ggplot(aes(x = Resid)) +
+    geom_histogram(bins = 12)
+```
+
+"Average" residual?
+```{r}
+toy2 %>% add_residuals(mod_toy, var = "Resid") %>%
+    summarize(   sqrt(sum(Resid^2)/n()) )
+```
+
+Note: We usually look at a residual *standard error*, which uses the number of data points minus the number of degrees of freedom in your model.
+```{r}
+toy2 %>% add_residuals(mod_toy, var = "Resid") %>%
+    summarize(   sqrt(sum(Resid^2)/(n() - 3)) )
+```
+
+We can still look for patterns:
+```{r}
+toy2 %>% 
+    add_residuals(mod_toy, var = "Resid") %>%
+    ggplot(aes(x = Out, y = Resid)) +
+    geom_point()
+```
+
+Looks pretty random.
+
+## Regression with Factors
+
+Regression using factors (as inputs) is a little special:
+```{r}
+my_mt <- mtcars %>%
+    mutate(gear = factor(gear),
+           cyl = factor(cyl))
+mod_gear <- lm(mpg ~ gear, data = my_mt)
+mod_gear
+```
+
+```{r}
+my_mt %>%
+    count(gear)
+```
+
+R has produced "dummy variables" which represent true/false categories of having 4 or 5 gears. Default is 3 gears (the first factor).
+
+```{r}
+my_mt %>% 
+    group_by(gear) %>%
+    summarize(mean(mpg))
+```
+
+Why 24.53 for 4 gears and we get coefficient of 8.427?
+```{r}
+24.5333 - 16.10667
+```
+
+In other words, the `gear4` coefficient is the *difference* between the default (3 gears) and the new category (4 gears) for average mpg.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

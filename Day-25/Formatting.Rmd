@@ -1,0 +1,151 @@
+---
+title: "Formatting"
+author: "John W. Hoggard"
+date: "11/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+Three things to improve RMarkdown:
+
+  *  RMarkdown options
+  *  Tables
+  *  More ggplot options.
+  
+## RMarkdown Options
+
+The "chunks" (the pieces which show up between the three single quotes).
+
+  * `include = FALSE`:  Don't show either input or output from this command.
+  * `echo = FALSE`: Don't print the command (but do print the output).
+  * `message`, `warning`: control whether messages and warning are printed in the final file.
+  
+There's a ton of options for `knitr`: For more information, see
+ https://yihui.org/knitr/.
+ 
+(Also Chapter 21.)
+
+## Tables
+
+By default, tables that you print in RMarkdown show up as just "raw" output.
+```{r}
+head(mpg)
+```
+
+Alternative: You wrap these in a function `knitr::kable`:
+```{r}
+knitr::kable(
+    head(mpg)
+)
+```
+
+Other arguments can add more details:
+
+  * `caption` to create a caption over the table.
+  * `col.names`: specify strings to use for the column names.
+  * `digits`: specifies how many decimal places to round to.
+  
+More in Chapter 22.
+
+Markdown by itself is a little limited; to get fancier you can specify the kind of output (html, pdf) and then add more options with a package `kableExtra` (needs installation).
+```{r}
+knitr::kable(
+    head(mtcars)
+) %>%
+    kableExtra::kable_styling(
+        bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+## More GGPlot Options
+
+(See stuff in Chapter 22.)
+
+Non-data elements (like axes labels, etc) are adjusted as part of a "theme":
+```{r}
+mpg %>%
+    ggplot(aes(x = displ, y = hwy, color = drv)) + 
+    geom_point() +
+    theme(axis.text.x = element_text(size = 12, # Size of text
+            angle = 90,
+            vjust = .5))
+```
+
+We can also change scaling, such as for exponential type data:
+```{r}
+exprands <- tibble(x = exp(rnorm(1000)))
+ggplot(exprands, aes(x)) + 
+    geom_histogram(bins = 30) + 
+    scale_x_log10()
+```
+
+### Colors and Themes
+
+You *can* specify colors yourself:
+```{r}
+ggplot(iris, aes(x = Sepal.Width, y = Sepal.Length, color = Species)) + 
+    geom_point() +
+    scale_color_manual(values = c("purple", "yellow", "black"))
+```
+
+If you want to know, you can find the color names with `colors`:
+```{r}
+colors()
+```
+
+Pre-picked options in `scale_color_brewer`:
+```{r}
+ggplot(iris, aes(Sepal.Width, Sepal.Length, color = Species)) +
+    geom_point() + 
+    scale_color_brewer(palette = "YlOrRd" )
+```
+
+There are other sets of color scales designed for continuous gradations.
+```{r}
+df <- tibble(x = rnorm(10000), y = rnorm(10000))
+ggplot(df, aes(x, y)) + 
+    geom_bin2d() + 
+    coord_fixed() +
+    scale_fill_binned(type ="viridis")
+```
+
+### Themes
+
+We can add a theme:
+```{r}
+mpg %>%
+    ggplot(aes(displ, hwy, color = drv)) + 
+    geom_point() + 
+    theme_grey()
+```
+
+There are more available in `ggthemes` package:
+```{r}
+mpg %>%
+    ggplot(aes(displ, hwy, color = drv)) + 
+    geom_point() +
+    ggthemes::theme_wsj()
+```
+
+```{r}
+mpg %>%
+    ggplot(aes(displ, hwy, color = drv)) + 
+    geom_point() +
+    ggthemes::theme_fivethirtyeight()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

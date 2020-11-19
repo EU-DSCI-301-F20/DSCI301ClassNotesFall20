@@ -1,0 +1,150 @@
+---
+title: "Modeling"
+author: "John W. Hoggard"
+date: "11/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+A *model* is some (hopefully simple) function which approximates some output variable we're interested in based on some input variables.
+
+In general, we can use this to:
+
+  * Directly predict new values
+  * Understand to interpret relationships among values
+
+Some examples:
+
+  * Given grades on a first test and homework up through midterm, can we predict a student's final grade?
+  * Given information about a loan applicants income, education, borrowing history, etc., can we predict the probability that they will pay back a loan?
+  * Can we understand the relationship between the horsepower of a car and the highway gas mileage of the car?
+  
+We will focus on *linear* models.
+
+## A Toy Example
+
+Create a fake data set:
+```{r}
+set.seed(123)
+toy <- tibble(
+    "Input" = 1:20,
+    "Output" = 3*(1:20) + 2 + rnorm(20, sd = 5)
+)
+```
+
+```{r}
+ggplot(toy, aes(Input, Output)) + 
+    geom_point() +
+    geom_smooth(method = "lm", se = F)
+```
+
+What is the actual model?  R can generate a linear model with the `lm` function, which takes the following:
+
+  * A data frame with the appropriate variables, and
+  * A *formula*, which looks like `y ~ x`
+  
+```{r}
+lm(Output ~ Input, data = toy)
+```
+
+This says we have a y-intercept of 3.55 and slope of the Input variable is 2.92, i.e., our model takes the form Output = 3.55 + 2.92 * Input.
+
+```{r}
+ggplot(toy, aes(Input, Output)) + 
+    geom_point() +
+    geom_abline(slope = 2.92, intercept = 3.55)
+```
+
+## Connecting MPG to HP
+
+Looking at the `mtcars` dataset, built in to R (from Motor Trends magazine, 1974):
+```{r}
+glimpse(mtcars)
+```
+
+Relationship between horsepower and mpg?
+```{r}
+hp_model <- lm( mpg ~ hp, data = mtcars)
+```
+
+```{r}
+summary(hp_model)
+```
+
+So our model is mpg = -.06823*hp + 30.09886.
+
+Also of interest:  The R-squared value can also be interpreted here as the percentage of variability in mpg which can be accounted for by the hp variable. 
+
+We can add the predictions into our data frame using the `modelr` package, and also the residuals:
+```{r}
+library(modelr)
+```
+
+```{r}
+mtcars %>% 
+    add_predictions(hp_model, var = "Predictions") %>%
+    add_residuals(hp_model, var = "Resid") %>%
+    select(mpg, Predictions, Resid)
+```
+
+In general, how did my model do?  Look at the residuals:
+```{r}
+mtcars %>%
+    add_residuals(hp_model, var = "Resid") %>%
+    ggplot(aes(Resid)) +
+    geom_histogram(bins = 12)
+```
+
+What about residuals vs. the input, hp:
+```{r}
+mtcars %>%
+    add_residuals(hp_model, var = "Resid") %>%
+    ggplot(aes(x = hp, y = Resid)) +
+    geom_point()
+```
+
+In fact, there is kind of a pattern just in mpg vs. hp:
+```{r}
+mtcars %>%
+    ggplot(aes(x = hp, y = mpg)) + 
+    geom_point() +
+    geom_smooth(method = "lm", se = F)
+```
+
+Well, we can actually add extra variables to this:
+```{r}
+quad_hp_model <- lm( mpg ~ hp + I(hp^2), data = mtcars)
+quad_hp_model
+```
+
+Says: mpg = 40.4 - 0.2133*hp + .0004208*hp^2.
+```{r}
+mtcars %>%
+    add_residuals(quad_hp_model, var = "Resid") %>%
+    ggplot(aes(x = hp, y=Resid)) + 
+    geom_point()
+```
+
+```{r}
+mtcars %>%
+    mutate(quad_model = 40.4 -.2133*hp + .0004208*hp^2) %>%
+    ggplot() + 
+    geom_point(aes(x = hp, y = mpg)) + 
+    geom_line(aes(x = hp, y = quad_model), color = "red")
+```
+
+
+
+
+
+
+
+
+

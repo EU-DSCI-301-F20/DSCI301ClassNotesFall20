@@ -1,0 +1,73 @@
+---
+title: "More-Purrr"
+author: "John W. Hoggard"
+date: "11/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+Let's find averages of elements in the `mpg` data set:
+```{r}
+glimpse(mpg)
+```
+
+```{r}
+mpg %>%
+    select(displ, year, cyl, cty, hwy) %>%
+    map(mean)
+```
+
+Let's generate some random data with different means:
+```{r}
+list_of_means <- c(1, 5, 10, 15)
+data_list <- vector(mode = "list", 4)
+for ( i in seq_along(list_of_means) ) {
+    data_list[[i]] <- rnorm(20, mean = list_of_means[[i]])
+}
+data_list
+```
+
+By default, it returns a list:
+```{r}
+map(data_list, mean) %>% as_vector
+```
+
+There is also a `map_dbl` which will give back a *vector*, if every result is really a double:
+```{r}
+map_dbl(data_list, mean)
+```
+
+What are the standard deviations?
+```{r}
+map_dbl(data_list, sd)
+```
+
+You can also do other functions, like `map_chr`, `map_lgl`, `map_int`, etc.
+
+How else could we get 20 random normals with different means?
+```{r}
+map(
+    c(1, 5, 10, 20),
+    function(x) { rnorm(20, mean = x)}
+)
+```
+
+We even have a `map_dfc` for output which is a data frame, created by columns:
+```{r}
+map_dfc(
+    c(1, 5, 10, 20),
+    function(x) { rnorm(20, mean = x)}
+)
+```
+
+
+
+
+
